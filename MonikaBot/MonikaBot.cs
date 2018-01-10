@@ -1,6 +1,7 @@
 ﻿using DSharpPlus;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace MonikaBot
 {
@@ -31,6 +32,14 @@ namespace MonikaBot
                 UseInternalLogHandler = true
             };
             client = new DiscordClient(dConfig);
+
+            Console.WriteLine("OS: " + OperatingSystemDetermination.GetUnixName());
+            if (OperatingSystemDetermination.GetUnixName().Contains("Windows 7"))
+            {
+                Console.WriteLine("On Windows 7, using WebSocket4Net");
+                //only do this on windows 7
+                client.SetWebSocketClient<DSharpPlus.Net.WebSocket.WebSocket4NetClient>();
+            }
         }
 
         public void ConnectBot()
@@ -48,7 +57,7 @@ namespace MonikaBot
 
                 // Print all connected channels.
 
-                return null;
+                return Task.Delay(0);
             };
 
             client.ConnectAsync();
