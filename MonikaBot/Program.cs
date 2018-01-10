@@ -11,6 +11,7 @@ namespace MonikaBot
         static void Main(string[] args)
         {
             Console.WriteLine("Absolutely nothing yet!");
+            Console.ReadLine();
         }
     }
 }
