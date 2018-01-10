@@ -6,7 +6,11 @@ namespace MonikaBot
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Absolutely nothing yet!");
+            using (var b = new MonikaBot())
+            {
+                Console.WriteLine($"Prefix: {b.config.Prefix}");
+            }
+
             Console.ReadLine();
         }
     }
