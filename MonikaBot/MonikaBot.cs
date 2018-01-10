@@ -105,7 +105,6 @@ namespace MonikaBot
             */
             client.MessageCreated += Client_MessageCreated;
 
-
             client.ConnectAsync();
         }
 
@@ -151,7 +150,7 @@ namespace MonikaBot
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write($"@{e.Author.Username} #{e.Channel.Name}:");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write($" {e.Message.Content}");
+            Console.Write($" {e.Message.Content}\n");
 
             return Task.Delay(0);
         }
