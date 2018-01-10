@@ -25,7 +25,7 @@ namespace MonikaBot
 
         public void Dispose()
         {
-            //nothing yet, we have nothing to dispose!
+            //nothing yet, we have nothing to dispose! 
         }
     }
 }
