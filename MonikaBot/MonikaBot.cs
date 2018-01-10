@@ -46,6 +46,7 @@ namespace MonikaBot
 
         public void ConnectBot()
         {
+            /*
             client.Ready += (e) =>
             {
                 Console.WriteLine("Ready!");
@@ -62,7 +63,11 @@ namespace MonikaBot
 
                 return Task.Delay(0);
             };
+            */
 
+            client.Ready += Client_Ready;
+
+            /*
             client.GuildAvailable += (e) =>
             {
                 Console.WriteLine("Guild available: " + e.Guild.Name);
@@ -82,7 +87,12 @@ namespace MonikaBot
 
                 return Task.Delay(0);
             };
+            */
 
+            client.GuildAvailable += Client_GuildAvailable;
+
+
+            /*
             client.MessageCreated += (e) =>
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -92,8 +102,58 @@ namespace MonikaBot
 
                 return Task.Delay(0);
             };
+            */
+            client.MessageCreated += Client_MessageCreated;
+
 
             client.ConnectAsync();
+        }
+
+        private Task Client_Ready(DSharpPlus.EventArgs.ReadyEventArgs e)
+        {
+            Console.WriteLine("Ready!");
+
+            // Print all connected servers.
+            string servers = "";
+            foreach (DiscordGuild server in e.Client.Guilds.Values)
+            {
+                servers += server.Name + ", ";
+            }
+            Console.WriteLine("Servers: " + servers);
+
+            // Print all connected channels.
+
+            return Task.Delay(0);
+        }
+
+        private Task Client_GuildAvailable(DSharpPlus.EventArgs.GuildCreateEventArgs e)
+        {
+            Console.WriteLine("Guild available: " + e.Guild.Name);
+
+            //Lists all the channels
+            string channels = "Channels: ";
+            foreach (var channel in e.Guild.Channels)
+            {
+                channels += $"{channel.Name} ({channel.Type.ToString()}), ";
+            }
+            Console.WriteLine(channels);
+
+            //Fancy way to send a message to a channel
+
+            DiscordChannel channelToSend = e.Guild.Channels.Where(x => x.Name == "dev" && x.Type == ChannelType.Text).First();
+            client.SendMessageAsync(channelToSend, "Can you hear me?");
+
+            return Task.Delay(0);
+        }
+
+        private Task Client_MessageCreated(DSharpPlus.EventArgs.MessageCreateEventArgs e)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($"@{e.Author.Username} #{e.Channel.Name}:");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write($" {e.Message.Content}");
+
+            return Task.Delay(0);
         }
 
         public void Dispose()
