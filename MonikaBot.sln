@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27130.2020
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonikaBot", "MonikaBot\MonikaBot.csproj", "{8C0218EB-7585-4F05-B5AB-2B144323C1D0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Luigibot.Commands", "..\..\..\Desktop\Luigibot-master\Luigibot.Commands\Luigibot.Commands.csproj", "{2E99D97F-3480-43E2-AC9D-7DAE521CB610}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonikaBot.Commands", "MonikaBot.Commands\MonikaBot.Commands.csproj", "{2E99D97F-3480-43E2-AC9D-7DAE521CB610}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
