@@ -33,9 +33,32 @@ namespace MonikaBot
             client = new DiscordClient(dConfig);
         }
 
+        public void ConnectBot()
+        {
+            client.Ready += (e) =>
+            {
+                Console.WriteLine("Ready!");
+
+                // Print all connected servers.
+                string servers = "";
+                foreach(var server in e.Client.Guilds.Keys)
+                {
+                    servers += server.ToString();
+                }
+
+                // Print all connected channels.
+
+                return null;
+            };
+
+            client.ConnectAsync();
+        }
+
         public void Dispose()
         {
-            //nothing yet, we have nothing to dispose!
+            if(client != null)
+                client.Dispose();
+            config = null;
         }
     }
 }

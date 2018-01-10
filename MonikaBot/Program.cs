@@ -6,12 +6,19 @@ namespace MonikaBot
     {
         static void Main(string[] args)
         {
-            using (var b = new MonikaBot())
+            MonikaBot b = new MonikaBot();
+            b.ConnectBot();
+
+            string output = "";
+            while ((output = Console.ReadLine()) != null)
             {
-                Console.WriteLine($"Prefix: {b.config.Prefix}");
+                if (output == "")
+                {
+                    return;
+                }
             }
 
-            Console.ReadLine();
         }
+
     }
 }
