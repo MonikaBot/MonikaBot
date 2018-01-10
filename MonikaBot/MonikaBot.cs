@@ -1,7 +1,9 @@
 ﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace MonikaBot
 {
@@ -50,12 +52,43 @@ namespace MonikaBot
 
                 // Print all connected servers.
                 string servers = "";
-                foreach(var server in e.Client.Guilds.Keys)
+                foreach(DiscordGuild server in e.Client.Guilds.Values)
                 {
-                    servers += server.ToString();
+                    servers += server.Name + ", ";
                 }
+                Console.WriteLine("Servers: " + servers);
 
                 // Print all connected channels.
+
+                return Task.Delay(0);
+            };
+
+            client.GuildAvailable += (e) =>
+            {
+                Console.WriteLine("Guild available: " + e.Guild.Name);
+
+                //Lists all the channels
+                string channels = "Channels: ";
+                foreach(var channel in e.Guild.Channels)
+                {
+                    channels += $"{channel.Name} ({channel.Type.ToString()}), ";
+                }
+                Console.WriteLine(channels);
+
+                //Fancy way to send a message to a channel
+
+                DiscordChannel channelToSend = e.Guild.Channels.Where(x => x.Name == "dev" && x.Type == ChannelType.Text).First();
+                client.SendMessageAsync(channelToSend, "Can you hear me?");
+
+                return Task.Delay(0);
+            };
+
+            client.MessageCreated += (e) =>
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write($"@{e.Author.Username} #{e.Channel.Name}:");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write($" {e.Message.Content}");
 
                 return Task.Delay(0);
             };
