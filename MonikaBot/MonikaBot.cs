@@ -24,6 +24,14 @@ namespace MonikaBot
 
             config = new MonikaBotConfig();
             config = config.LoadConfig("config.json");
+
+            if(config.Token == MonikaBotConfig.BlankTokenString) //this is static so I have to reference by class name vs. an instance of the class.
+            {
+                Console.WriteLine("Please edit the config file!");
+
+                return;
+            }
+
             DiscordConfiguration dConfig = new DiscordConfiguration
             {
                 AutoReconnect = true,
@@ -36,9 +44,9 @@ namespace MonikaBot
             client = new DiscordClient(dConfig);
 
             Console.WriteLine("OS: " + OperatingSystemDetermination.GetUnixName());
-            if (OperatingSystemDetermination.GetUnixName().Contains("Windows 7"))
+            if (OperatingSystemDetermination.GetUnixName().Contains("Windows 7") || OperatingSystemDetermination.IsOnMac() || OperatingSystemDetermination.IsOnUnix())
             {
-                Console.WriteLine("On Windows 7, using WebSocket4Net");
+                Console.WriteLine("On macOS, Windows 7, or Unix; using WebSocket4Net");
                 //only do this on windows 7
                 client.SetWebSocketClient<DSharpPlus.Net.WebSocket.WebSocket4NetClient>();
             }
@@ -139,8 +147,8 @@ namespace MonikaBot
 
             //Fancy way to send a message to a channel
 
-            DiscordChannel channelToSend = e.Guild.Channels.Where(x => x.Name == "dev" && x.Type == ChannelType.Text).First();
-            client.SendMessageAsync(channelToSend, "Can you hear me?");
+            //DiscordChannel channelToSend = e.Guild.Channels.Where(x => x.Name == "dev" && x.Type == ChannelType.Text).First();
+            //client.SendMessageAsync(channelToSend, "Can you hear me?");
 
             return Task.Delay(0);
         }
@@ -151,6 +159,16 @@ namespace MonikaBot
             Console.Write($"@{e.Author.Username} #{e.Channel.Name}:");
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($" {e.Message.Content}\n");
+
+            if(e.Message.Content.Contains(config.Prefix + "os"))
+            {
+                client.SendMessageAsync(e.Channel, $"I'm currently being hosted on a system running `{OperatingSystemDetermination.GetUnixName()}`~!");
+                if(OperatingSystemDetermination.IsOnMac())
+                {
+                    Task.Delay(1000);
+                    client.SendMessageAsync(e.Channel, "My favourite!");
+                }
+            }
 
             return Task.Delay(0);
         }

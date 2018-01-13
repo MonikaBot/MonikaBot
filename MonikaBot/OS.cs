@@ -60,8 +60,8 @@ namespace MonikaBot
             if (IsOnMac())
             {
                 Version macVersion = new Version(GetProcessOutput("sw_vers", "-productVersion"));
-                string macReturn = (macVersion.Minor < 8 ? "Mac " : "") + "OS X " + GetProcessOutput("sw_vers", "-productVersion");
-                macReturn += " " + GetProcessOutput("uname", "-m");
+                string macReturn = (macVersion.Minor < 8 ? "Mac " : "") + (macVersion.Minor > 11 ? "macOS " : "OS X ") + GetProcessOutput("sw_vers", "-productVersion");
+                //macReturn += " " + GetProcessOutput("uname", "-m");
                 macReturn.Trim();
 
                 return macReturn;
@@ -72,6 +72,7 @@ namespace MonikaBot
                 return FriendlyName() + (Environment.Is64BitOperatingSystem ? "amd64" : "i386");
             }
 
+            //Basically any other Unix
             string returnValue = GetProcessOutput("lsb_release", "-d");
             returnValue = returnValue.Substring(returnValue.LastIndexOf(':') + 1).Trim();
             returnValue += " " + GetProcessOutput("uname", "-m");

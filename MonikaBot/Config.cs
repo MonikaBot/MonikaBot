@@ -6,8 +6,10 @@ namespace MonikaBot
 {
     internal class MonikaBotConfig
     {
+        public static string BlankTokenString = "Bot user Token here...";
+
         [JsonProperty("token")]
-        internal string Token = "Bot user Token here...";
+        internal string Token = BlankTokenString;
 
         /// <summary>
         /// The prefix is how you summon the bot, a character or bit of text that's before each message that lets the bot know that this is going to be for it.
