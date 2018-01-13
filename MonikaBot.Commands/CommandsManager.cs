@@ -147,7 +147,7 @@ namespace MonikaBot.Commands
             return dict;
         }
 
-        public int ExecuteOnMessageCommand(string rawCommandText, DiscordChannel channel, DiscordMember author)
+        public int ExecuteOnMessageCommand(string rawCommandText, DiscordChannel channel, DiscordUser author)
         {
             string[] split = rawCommandText.Split(new char[] { ' ' }); //splits into args and stuff
             try

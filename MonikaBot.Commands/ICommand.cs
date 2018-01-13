@@ -11,7 +11,7 @@ namespace MonikaBot.Commands
     {
         public List<string> Args { get; internal set; }
         public DiscordChannel Channel { get; internal set; }
-        public DiscordMember Author { get; internal set; }
+        public DiscordUser Author { get; internal set; }
         public string FromIntegration { get; internal set; }
     }
 
@@ -56,7 +56,7 @@ namespace MonikaBot.Commands
         public virtual string ID { get; set; }
 
         public abstract void ExecuteCommand();
-        public abstract void ExecuteCommand(DiscordChannel channel, DiscordMember member);
+        public abstract void ExecuteCommand(DiscordChannel channel, DiscordUser member);
 
         //public string ReturnArgument(string argName)
         //{

@@ -4,12 +4,15 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
+using MonikaBot.Commands;
+using DSharpPlus.EventArgs;
 
 namespace MonikaBot
 {
     public class MonikaBot : IDisposable
     {
         private DiscordClient client;
+        private CommandsManager commandManager;
         internal MonikaBotConfig config;
 
         public MonikaBot()
@@ -126,9 +129,10 @@ namespace MonikaBot
             {
                 servers += server.Name + ", ";
             }
-            Console.WriteLine("Servers: " + servers);
 
-            // Print all connected channels.
+            // Setup the command manager for processing commands.
+            commandManager = new CommandsManager(client);
+            SetupInternalCommands();
 
             return Task.Delay(0);
         }
@@ -160,17 +164,122 @@ namespace MonikaBot
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($" {e.Message.Content}\n");
 
-            if(e.Message.Content.Contains(config.Prefix + "os"))
+            if(e.Message.Content.StartsWith(config.Prefix)) // We check if the message received starts with our bot's command prefix. If it does...
             {
-                client.SendMessageAsync(e.Channel, $"I'm currently being hosted on a system running `{OperatingSystemDetermination.GetUnixName()}`~!");
-                if(OperatingSystemDetermination.IsOnMac())
-                {
-                    Task.Delay(1000);
-                    client.SendMessageAsync(e.Channel, "My favourite!");
-                }
+                // We move onto processing the command.
+                // We pass in the MessageCreateEventArgs so we can get other information like channel, author, etc. The CommandsManager wants these things
+                ProcessCommand(e.Message.Content, e);
+                      
             }
 
             return Task.Delay(0);
+        }
+
+        /// <summary>
+        /// Sets up the internal commands for Monika Bot. This is run only once after she's been connected and provides some internal management and information commands.
+        /// </summary>
+        private void SetupInternalCommands()
+        {
+            commandManager.AddCommand(new CommandStub("cmdinfo", "Displays help for a command.", "Help", PermissionType.User, 2, e =>
+            {
+                if (!String.IsNullOrEmpty(e.Args[0]))
+                {
+                    ICommand stub = commandManager.Commands.FirstOrDefault(x => x.Key == e.Args[0]).Value;
+
+                    if (stub != null)
+                    {
+                        string msg = "**Help for " + stub.CommandName + "**";
+                        msg += $"\n{stub.Description}";
+                        if (!String.IsNullOrEmpty(stub.HelpTag))
+                            msg += $"\n\n{stub.HelpTag}";
+                        if (stub.Parent != null)
+                            msg += $"\nFrom module `{stub.Parent.Name}`";
+                        if (stub.ID != null)
+                            msg += $"\n`{stub.ID}`";
+                        e.Channel.SendMessageAsync(msg);
+                    }
+                    else
+                    {
+                        e.Channel.SendMessageAsync("What command?");
+                    }
+                }
+                else
+                    e.Channel.SendMessageAsync("What command?");
+            }));
+
+            commandManager.AddCommand(new CommandStub("os", "Displays OS info for the bot.", "OS information", PermissionType.User, 0, e => 
+            {
+                e.Channel.SendMessageAsync($"I'm currently being hosted on a system running `{OperatingSystemDetermination.GetUnixName()}`~!");
+                if (OperatingSystemDetermination.IsOnMac())
+                {
+                    Task.Delay(1000);
+                    e.Channel.SendMessageAsync("My favourite!");
+                }
+            }));
+
+            commandManager.AddCommand(new CommandStub("userinfo", "Displays various user information such as discrim, ID, etc.", "Mostly useful for getting the user ID.", PermissionType.User, 1, e=> 
+            {
+                // Names could be passed in as a mention (Which looks like this: <@05982305980598>) or the actual name.
+                string user = e.Args[0];
+                DiscordMember userObject = null;
+                if(user.StartsWith("<@") && user.EndsWith(">")) //an actual mention so we extract the ID which is after the @
+                {
+                    string ID = user.Trim('<', '@', '>', '!');
+                    if(ID == client.CurrentUser.Id.ToString())
+                    {
+                        e.Channel.SendMessageAsync("That's me silly!");
+                        return;
+                    }
+                    else
+                        userObject = e.Channel.Guild.Members.FirstOrDefault(x => x.Id.ToString() == ID);
+                }
+                else // a regular username
+                {
+                    userObject = e.Channel.Guild.Members.FirstOrDefault(x => x.DisplayName.ToLower() == user.ToLower());
+                    if(userObject.Id == client.CurrentUser.Id)
+                    {
+                        e.Channel.SendMessageAsync("That's me silly!");
+                        return;
+                    }
+                }
+
+                if (userObject != null)
+                {
+                    e.Channel.SendMessageAsync($"User Information for `{userObject.DisplayName}`\n\n```\nUsername: {userObject.Username}" +
+                                               $"\nPlaying: {userObject.Presence.Game.Name}\nID: {userObject.Id}\nNickname: {userObject.DisplayName}\n```\n\nI know everything~");
+
+                }
+                else
+                    e.Channel.SendMessageAsync("Couldn't find the user you requested!");
+            }));
+        }
+
+        private void ProcessCommand(string rawString, MessageCreateEventArgs e)
+        {
+            // The first thing we do is get rid of the prefix string from the command. We take the message from looking like say this:
+            // --say something
+            // to
+            // say something
+            // that way we don't have any excess characters getting in the way.
+            string rawCommand = rawString.Substring(config.Prefix.Length);
+
+            // A try catch block for executing the command and catching various things and reporting on errors.
+            try
+            {
+                commandManager.ExecuteOnMessageCommand(rawCommand, e.Channel, e.Author);
+            }
+            catch (UnauthorizedAccessException ex) // Bad permission
+            {
+                e.Channel.SendMessageAsync(ex.Message);
+            }
+            catch (ModuleNotEnabledException x) // Module is disabled
+            {
+                e.Channel.SendMessageAsync($"{x.Message}");
+            }
+            catch (Exception ex) // Any other error that could happen inside of the commands.
+            {
+                e.Channel.SendMessageAsync("Exception occurred while running command:\n```\n" + ex.Message + "\n```");
+            }          
         }
 
         public void Dispose()

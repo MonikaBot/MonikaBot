@@ -118,7 +118,7 @@ namespace MonikaBot.Commands
         }
 
         
-        public override void ExecuteCommand(DiscordChannel channel, DiscordMember member)
+        public override void ExecuteCommand(DiscordChannel channel, DiscordUser member)
         {
             CommandArgs e = new CommandArgs();
             /*e.FromIntegration = integration.IntegrationName;*/
