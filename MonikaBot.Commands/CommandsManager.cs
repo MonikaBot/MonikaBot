@@ -30,7 +30,7 @@ namespace MonikaBot.Commands
     {
         
         private readonly DiscordClient __client;
-        public DiscordClient Integration
+        public DiscordClient Client
         {
             get
             {
