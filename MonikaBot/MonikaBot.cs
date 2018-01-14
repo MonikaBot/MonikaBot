@@ -180,6 +180,9 @@ namespace MonikaBot
         /// </summary>
         private void SetupInternalCommands()
         {
+            IModule ownerModule = new OwnerModule.BaseOwnerModules(this);
+            ownerModule.Install(commandManager);
+
             commandManager.AddCommand(new CommandStub("cmdinfo", "Displays help for a command.", "Help", PermissionType.User, 2, e =>
             {
                 if (!String.IsNullOrEmpty(e.Args[0]))
@@ -264,8 +267,12 @@ namespace MonikaBot
                             string msg = $"**About Module {module.Key.Name}**";
 
                             msg += $"\n{module.Key.Description}\nEnabled: {module.Value}";
-                            msg += $"\nCommands: ";
-                            module.Key.Commands.ForEach(x => msg += $"{x.CommandName}, ");
+                            msg += $"\nCommands ({module.Key.Commands.Count} Total): ";
+
+                            foreach(var command in module.Key.Commands)
+                            {
+                                msg += $"{command.CommandName}, ";
+                            }
 
                             cmdArgs.Channel.SendMessageAsync(msg);
                             break;

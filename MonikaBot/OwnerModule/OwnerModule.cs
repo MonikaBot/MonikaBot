@@ -112,7 +112,7 @@ namespace MonikaBot.OwnerModule
                         msg += $"\n`{kvp.Key.Name}` - {kvp.Value.ToString()}";
                     }
                 cmdArgs.Channel.SendMessageAsync(msg);
-                }));
+                }), this);
 
             manager.AddCommand(new CommandStub("changeprefix", "Changes the command prefix to a specified character.", "", PermissionType.Owner, 1, cmdArgs =>
             {
@@ -133,7 +133,7 @@ namespace MonikaBot.OwnerModule
                 }
                 else
                     cmdArgs.Channel.SendMessageAsync("What prefix?");
-            }));
+            }), this);
 
             /* TODO
             manager.AddCommand(new CommandStub("prune",
