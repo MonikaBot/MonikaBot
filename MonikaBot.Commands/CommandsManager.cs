@@ -240,6 +240,15 @@ namespace MonikaBot.Commands
         }
 
         /// <summary>
+        /// Sends the message.
+        /// </summary>
+        /// <param name="message">Message.</param>
+        public void SendMessage(string message)
+        {
+            
+        }
+
+        /// <summary>
         /// Adds a generic command without an associated module.
         /// </summary>
         /// <param name="command"></param>

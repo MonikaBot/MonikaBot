@@ -207,7 +207,7 @@ namespace MonikaBot
                     e.Channel.SendMessageAsync("What command?");
             }));
 
-            commandManager.AddCommand(new CommandStub("os", "Displays OS info for the bot.", "OS information", PermissionType.User, 0, e => 
+            commandManager.AddCommand(new CommandStub("os", "Displays OS info for the bot.", "OS information", PermissionType.User, 0, e =>
             {
                 e.Channel.SendMessageAsync($"I'm currently being hosted on a system running `{OperatingSystemDetermination.GetUnixName()}`~!");
                 if (OperatingSystemDetermination.IsOnMac())
@@ -217,15 +217,15 @@ namespace MonikaBot
                 }
             }));
 
-            commandManager.AddCommand(new CommandStub("userinfo", "Displays various user information such as discrim, ID, etc.", "Mostly useful for getting the user ID.", PermissionType.User, 1, e=> 
+            commandManager.AddCommand(new CommandStub("userinfo", "Displays various user information such as discrim, ID, etc.", "Mostly useful for getting the user ID.", PermissionType.User, 1, e =>
             {
                 // Names could be passed in as a mention (Which looks like this: <@05982305980598>) or the actual name.
                 string user = e.Args[0];
                 DiscordMember userObject = null;
-                if(user.StartsWith("<@") && user.EndsWith(">")) //an actual mention so we extract the ID which is after the @
+                if (user.StartsWith("<@") && user.EndsWith(">")) //an actual mention so we extract the ID which is after the @
                 {
                     string ID = user.Trim('<', '@', '>', '!');
-                    if(ID == client.CurrentUser.Id.ToString())
+                    if (ID == client.CurrentUser.Id.ToString())
                     {
                         e.Channel.SendMessageAsync("That's me silly!");
                         return;
@@ -236,7 +236,7 @@ namespace MonikaBot
                 else // a regular username
                 {
                     userObject = e.Channel.Guild.Members.FirstOrDefault(x => x.DisplayName.ToLower() == user.ToLower());
-                    if(userObject.Id == client.CurrentUser.Id)
+                    if (userObject.Id == client.CurrentUser.Id)
                     {
                         e.Channel.SendMessageAsync("That's me silly!");
                         return;
@@ -252,6 +252,34 @@ namespace MonikaBot
                 else
                     e.Channel.SendMessageAsync("Couldn't find the user you requested!");
             }));
+
+            commandManager.AddCommand(new CommandStub("moduleinfo", "Shows information about a specific module.", "", PermissionType.User, 1, cmdArgs =>
+            {
+                if (cmdArgs.Args.Count > 0 && cmdArgs.Args[0].Length > 0)
+                {
+                    foreach (var module in commandManager.Modules.ToList())
+                    {
+                        if (module.Key.Name.ToLower().Trim() == cmdArgs.Args[0].ToLower().Trim())
+                        {
+                            string msg = $"**About Module {module.Key.Name}**";
+
+                            msg += $"\n{module.Key.Description}\nEnabled: {module.Value}";
+                            msg += $"\nCommands: ";
+                            module.Key.Commands.ForEach(x => msg += $"{x.CommandName}, ");
+
+                            cmdArgs.Channel.SendMessageAsync(msg);
+                            break;
+                        }
+                    }
+                }
+            }));
+
+#if DEBUG
+            /// This stuff is only loaded if we're working with a "Debug" configuration in Visual Studio
+            IModule funModule = new FunModule.FunModule();
+            funModule.Install(commandManager);
+            Console.WriteLine($"Installed module {funModule.Name} (Desc: {funModule.Description})");
+#endif
         }
 
         private void ProcessCommand(string rawString, MessageCreateEventArgs e)

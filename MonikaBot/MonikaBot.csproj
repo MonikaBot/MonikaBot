@@ -70,6 +70,10 @@
       <Project>{2E99D97F-3480-43E2-AC9D-7DAE521CB610}</Project>
       <Name>MonikaBot.Commands</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MonikaBot.FunModule\MonikaBot.FunModule.csproj">
+      <Project>{DEC0E756-41E9-4F2F-8E28-0DA07372D9F9}</Project>
+      <Name>MonikaBot.FunModule</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

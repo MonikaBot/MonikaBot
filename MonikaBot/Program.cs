@@ -6,6 +6,9 @@ namespace MonikaBot
     {
         static void Main(string[] args)
         {
+            if (!System.IO.Directory.Exists("modules"))
+                System.IO.Directory.CreateDirectory("modules");
+
             MonikaBot b = new MonikaBot();
             b.ConnectBot();
 
