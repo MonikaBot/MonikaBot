@@ -7,6 +7,7 @@ namespace MonikaBot
     internal class MonikaBotConfig
     {
         public static string BlankTokenString = "Bot user Token here...";
+        public static string BlankOwnerIDString = "NONE";
 
         [JsonProperty("token")]
         internal string Token = BlankTokenString;
@@ -17,7 +18,19 @@ namespace MonikaBot
         [JsonProperty("prefix")]
         internal string Prefix = "--";
 
-        public MonikaBotConfig LoadConfig(string path)
+        /// <summary>
+        /// The owner identifier.
+        /// </summary>
+        [JsonProperty("ownerid")]
+        internal string OwnerID = "NONE";
+
+        /// <summary>
+        /// Makes the bot respond to a mention instead of a prefix.
+        /// </summary>
+        [JsonProperty("respondbymention")]
+        internal bool RespondByMention = false;
+
+        public MonikaBotConfig LoadConfig(string path = "config.json")
         {
             using (var sr = new StreamReader(path))
             {
@@ -25,7 +38,7 @@ namespace MonikaBot
             }
         }
 
-        public void WriteConfig(string path)
+        public void WriteConfig(string path = "config.json")
         {
             using (var sw = new StreamWriter(path))
             {

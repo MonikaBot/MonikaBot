@@ -4,23 +4,24 @@ namespace MonikaBot
 {
     class Program
     {
+        static MonikaBot b;
+
         static void Main(string[] args)
         {
             if (!System.IO.Directory.Exists("modules"))
                 System.IO.Directory.CreateDirectory("modules");
 
-            MonikaBot b = new MonikaBot();
+            b = new MonikaBot();
             b.ConnectBot();
 
             string output = "";
             while ((output = Console.ReadLine()) != null)
             {
-                if (output == "")
+                if (output.Trim().ToLower() == "quit")
                 {
                     return;
                 }
             }
-
         }
 
     }

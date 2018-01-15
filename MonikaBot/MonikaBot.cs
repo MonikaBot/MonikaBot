@@ -14,6 +14,8 @@ namespace MonikaBot
         private DiscordClient client;
         private CommandsManager commandManager;
         internal MonikaBotConfig config;
+        private bool SetupMode = false;
+        private string AuthorizationCode;
 
         public MonikaBot()
         {
@@ -25,16 +27,30 @@ namespace MonikaBot
                 return;
             }
 
+            /// Load config
             config = new MonikaBotConfig();
             config = config.LoadConfig("config.json");
 
+            /// Verify parts of the config
             if(config.Token == MonikaBotConfig.BlankTokenString) //this is static so I have to reference by class name vs. an instance of the class.
             {
                 Console.WriteLine("Please edit the config file!");
 
                 return;
             }
+            if(config.OwnerID == "NONE")
+            {
+                SetupMode = true;
+                AuthorizationCode = RandomCodeGenerator.GenerateRandomCode(10);
 
+                var oldColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("Warning: ");
+                Console.ForegroundColor = oldColor;
+                Console.Write($"Bot is in setup mode. Please type this command in a channel the bot has access to: \n      {config.Prefix}authenticate {AuthorizationCode}\n");
+            }
+
+            /// Setup the Client
             DiscordConfiguration dConfig = new DiscordConfiguration
             {
                 AutoReconnect = true,
@@ -50,7 +66,7 @@ namespace MonikaBot
             if (OperatingSystemDetermination.GetUnixName().Contains("Windows 7") || OperatingSystemDetermination.IsOnMac() || OperatingSystemDetermination.IsOnUnix())
             {
                 Console.WriteLine("On macOS, Windows 7, or Unix; using WebSocket4Net");
-                //only do this on windows 7
+                //only do this on windows 7 or Unix systems
                 client.SetWebSocketClient<DSharpPlus.Net.WebSocket.WebSocket4NetClient>();
             }
         }
@@ -121,20 +137,30 @@ namespace MonikaBot
 
         private Task Client_Ready(DSharpPlus.EventArgs.ReadyEventArgs e)
         {
-            Console.WriteLine("Ready!");
+            Console.WriteLine("Connected!!");
 
-            // Print all connected servers.
-            string servers = "";
-            foreach (DiscordGuild server in e.Client.Guilds.Values)
+            /// Hold off on initing commands and modules until AFTER we've setup with an owner.
+            if (SetupMode)
             {
-                servers += server.Name + ", ";
+                InitCommands();
             }
 
+            return Task.Delay(0);
+        }
+
+        private void InitCommands()
+        {
             // Setup the command manager for processing commands.
             commandManager = new CommandsManager(client);
             SetupInternalCommands();
 
-            return Task.Delay(0);
+
+#if DEBUG
+            /// This stuff is only loaded if we're working with a "Debug" configuration in Visual Studio
+            IModule funModule = new FunModule.FunModule();
+            funModule.Install(commandManager);
+            Console.WriteLine($"[MODULE]: Installed module {funModule.Name} (Desc: {funModule.Description})");
+#endif
         }
 
         private Task Client_GuildAvailable(DSharpPlus.EventArgs.GuildCreateEventArgs e)
@@ -166,6 +192,27 @@ namespace MonikaBot
 
             if(e.Message.Content.StartsWith(config.Prefix)) // We check if the message received starts with our bot's command prefix. If it does...
             {
+                if (SetupMode)
+                {
+                    string[] messageSplit = e.Message.Content.Split(' ');
+                    if(messageSplit.Length == 2)
+                    {
+                        Console.WriteLine($"Args: {messageSplit[0]}, {messageSplit[1]}");
+                        if(messageSplit[0] == $"{config.Prefix}authenticate" && messageSplit[1].Trim() == AuthorizationCode)
+                        {
+                            //we've authenticated!
+                            SetupMode = false;
+                            AuthorizationCode = "";
+                            config.OwnerID = e.Message.Author.Id.ToString();
+                            config.WriteConfig();
+                            e.Channel.SendMessageAsync($"I'm all yours, {e.Message.Author.Mention}~!");
+
+                            InitCommands();
+                        }
+                    }
+
+                    return Task.Delay(0);
+                }
                 // We move onto processing the command.
                 // We pass in the MessageCreateEventArgs so we can get other information like channel, author, etc. The CommandsManager wants these things
                 ProcessCommand(e.Message.Content, e);
@@ -220,42 +267,6 @@ namespace MonikaBot
                 }
             }));
 
-            commandManager.AddCommand(new CommandStub("userinfo", "Displays various user information such as discrim, ID, etc.", "Mostly useful for getting the user ID.", PermissionType.User, 1, e =>
-            {
-                // Names could be passed in as a mention (Which looks like this: <@05982305980598>) or the actual name.
-                string user = e.Args[0];
-                DiscordMember userObject = null;
-                if (user.StartsWith("<@") && user.EndsWith(">")) //an actual mention so we extract the ID which is after the @
-                {
-                    string ID = user.Trim('<', '@', '>', '!');
-                    if (ID == client.CurrentUser.Id.ToString())
-                    {
-                        e.Channel.SendMessageAsync("That's me silly!");
-                        return;
-                    }
-                    else
-                        userObject = e.Channel.Guild.Members.FirstOrDefault(x => x.Id.ToString() == ID);
-                }
-                else // a regular username
-                {
-                    userObject = e.Channel.Guild.Members.FirstOrDefault(x => x.DisplayName.ToLower() == user.ToLower());
-                    if (userObject.Id == client.CurrentUser.Id)
-                    {
-                        e.Channel.SendMessageAsync("That's me silly!");
-                        return;
-                    }
-                }
-
-                if (userObject != null)
-                {
-                    e.Channel.SendMessageAsync($"User Information for `{userObject.DisplayName}`\n\n```\nUsername: {userObject.Username}" +
-                                               $"\nPlaying: {userObject.Presence.Game.Name}\nID: {userObject.Id}\nNickname: {userObject.DisplayName}\n```\n\nI know everything~");
-
-                }
-                else
-                    e.Channel.SendMessageAsync("Couldn't find the user you requested!");
-            }));
-
             commandManager.AddCommand(new CommandStub("moduleinfo", "Shows information about a specific module.", "", PermissionType.User, 1, cmdArgs =>
             {
                 if (cmdArgs.Args.Count > 0 && cmdArgs.Args[0].Length > 0)
@@ -280,13 +291,6 @@ namespace MonikaBot
                     }
                 }
             }));
-
-#if DEBUG
-            /// This stuff is only loaded if we're working with a "Debug" configuration in Visual Studio
-            IModule funModule = new FunModule.FunModule();
-            funModule.Install(commandManager);
-            Console.WriteLine($"Installed module {funModule.Name} (Desc: {funModule.Description})");
-#endif
         }
 
         private void ProcessCommand(string rawString, MessageCreateEventArgs e)
