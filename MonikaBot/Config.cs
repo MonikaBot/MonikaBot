@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace MonikaBot
 {
@@ -29,6 +30,15 @@ namespace MonikaBot
         /// </summary>
         [JsonProperty("respondbymention")]
         internal bool RespondByMention = false;
+
+        /// <summary>
+        /// A dictionary containing the following
+        /// - Name of the module
+        /// - True/False if enabled or not.
+        /// </summary>
+        /// <value>The modules dictionary.</value>
+        [JsonProperty("modules")]
+        public Dictionary<string, bool> ModulesDictionary { get; internal set; } //null will mean all enabled
 
         public MonikaBotConfig LoadConfig(string path = "config.json")
         {

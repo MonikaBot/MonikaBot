@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using MonikaBot.Commands;
 using DSharpPlus.EventArgs;
+using Newtonsoft.Json;
 
 namespace MonikaBot
 {
@@ -38,7 +39,7 @@ namespace MonikaBot
 
                 return;
             }
-            if(config.OwnerID == "NONE")
+            if(config.OwnerID == MonikaBotConfig.BlankOwnerIDString || String.IsNullOrEmpty(config.OwnerID))
             {
                 SetupMode = true;
                 AuthorizationCode = RandomCodeGenerator.GenerateRandomCode(10);
@@ -139,8 +140,9 @@ namespace MonikaBot
         {
             Console.WriteLine("Connected!!");
 
+            commandManager = new CommandsManager(client);
             /// Hold off on initing commands and modules until AFTER we've setup with an owner.
-            if (SetupMode)
+            if (!SetupMode)
             {
                 InitCommands();
             }
@@ -151,7 +153,6 @@ namespace MonikaBot
         private void InitCommands()
         {
             // Setup the command manager for processing commands.
-            commandManager = new CommandsManager(client);
             SetupInternalCommands();
 
 
@@ -197,7 +198,6 @@ namespace MonikaBot
                     string[] messageSplit = e.Message.Content.Split(' ');
                     if(messageSplit.Length == 2)
                     {
-                        Console.WriteLine($"Args: {messageSplit[0]}, {messageSplit[1]}");
                         if(messageSplit[0] == $"{config.Prefix}authenticate" && messageSplit[1].Trim() == AuthorizationCode)
                         {
                             //we've authenticated!
@@ -206,6 +206,9 @@ namespace MonikaBot
                             config.OwnerID = e.Message.Author.Id.ToString();
                             config.WriteConfig();
                             e.Channel.SendMessageAsync($"I'm all yours, {e.Message.Author.Mention}~!");
+                            commandManager.AddPermission(e.Message.Author, PermissionType.Owner);
+                            File.WriteAllText("permissions.json", JsonConvert.SerializeObject(CommandsManager.UserRoles)); //Write the permissions file to the disk so she remembers who her owner is.
+
 
                             InitCommands();
                         }
@@ -267,6 +270,12 @@ namespace MonikaBot
                 }
             }));
 
+            commandManager.AddCommand(new CommandStub("flushroles", "Writes roles to `permissions.json` file.", "Writes roles file to disk.", PermissionType.Owner, 0, e =>
+            {
+                File.WriteAllText("permissions.json", JsonConvert.SerializeObject(CommandsManager.UserRoles));
+                e.Channel.SendMessageAsync(":thumbsup:");
+            }));
+
             commandManager.AddCommand(new CommandStub("moduleinfo", "Shows information about a specific module.", "", PermissionType.User, 1, cmdArgs =>
             {
                 if (cmdArgs.Args.Count > 0 && cmdArgs.Args[0].Length > 0)
@@ -323,6 +332,10 @@ namespace MonikaBot
 
         public void Dispose()
         {
+            File.WriteAllText("settings.json", JsonConvert.SerializeObject(config));
+            if(CommandsManager.UserRoles != null && CommandsManager.UserRoles.Count > 0)
+                File.WriteAllText("permissions.json", JsonConvert.SerializeObject(CommandsManager.UserRoles));
+
             if(client != null)
                 client.Dispose();
             config = null;

@@ -93,22 +93,22 @@ namespace MonikaBot.Commands
             Console.Write("");
         }
 
-        public bool HasPermission(IMember member, PermissionType permission)
+        public bool HasPermission(DiscordUser member, PermissionType permission)
         {
-            if(__internalUserRoles.ContainsKey(member.ID))
+            if(__internalUserRoles.ContainsKey(member.Id.ToString()))
             {
                 foreach (var perm in __internalUserRoles)
-                    if (perm.Key == member.ID && (int)perm.Value >= (int)permission)
+                    if (perm.Key == member.Id.ToString() && (int)perm.Value >= (int)permission)
                         return true;
             }
             return false;
         }
 
-        public void AddPermission(IMember member, PermissionType permission)
+        public void AddPermission(DiscordUser member, PermissionType permission)
         {
-            if (__internalUserRoles.ContainsKey(member.ID))
-                __internalUserRoles.Remove(member.ID);
-            __internalUserRoles.Add(member.ID, permission);
+            if (__internalUserRoles.ContainsKey(member.Id.ToString()))
+                __internalUserRoles.Remove(member.Id.ToString());
+            __internalUserRoles.Add(member.Id.ToString(), permission);
         }
         public void AddPermission(string memberID, PermissionType permission)
         {
