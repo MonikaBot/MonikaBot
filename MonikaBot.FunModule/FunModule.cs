@@ -65,7 +65,7 @@ namespace MonikaBot.FunModule
                 }
                 else
                     cmdArgs.Channel.SendMessageAsync($"This command is only available on Discord!");
-            }));
+            }), this);
             manager.AddCommand(new CommandStub("nf", "Pay no respect.", "Press nf", PermissionType.User, cmdArgs =>
             {
                 cmdArgs.Channel.SendMessageAsync($"{cmdArgs.Author.Username} refuses to pay respect. {FEmojis[manager.rng.Next(0, FEmojis.Length - 1)]}");
