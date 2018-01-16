@@ -1,16 +1,17 @@
 ﻿using System;
 using MonikaBot.Commands;
 
+
+public class ModuleEntryPoint : IModuleEntryPoint
+{
+    public IModule GetModule()
+    {
+        return new MonikaBot.FunModule.FunModule();
+    }
+}
+
 namespace MonikaBot.FunModule
 {
-    public class FunModuleEntryPoint : IModuleEntryPoint
-    {
-        public IModule GetModule()
-        {
-            return new FunModule();
-        }
-    }
-
     public class FunModule : IModule
     {
         private string[] EightballMessages = new string[]
@@ -47,6 +48,7 @@ namespace MonikaBot.FunModule
         {
             Name = "Fun Module";
             Description = "Has some fun stuff in it I suppose.";
+            ModuleKind = ModuleType.External; //NECESSARY for a DLL.
         }
 
         public override void Install(CommandsManager manager)

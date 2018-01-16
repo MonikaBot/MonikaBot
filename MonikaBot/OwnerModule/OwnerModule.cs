@@ -113,6 +113,10 @@ namespace MonikaBot.OwnerModule
                 foreach (var kvp in manager.Modules)
                 {
                     msg += $"\n`{kvp.Key.Name}` - {(kvp.Value ? "Enabled" : "Disabled")}";
+                    if(kvp.Key.ModuleKind == ModuleType.External)
+                    {
+                        msg += " - From DLL";
+                    }
                 }
                 cmdArgs.Channel.SendMessageAsync(msg);
             }), this);

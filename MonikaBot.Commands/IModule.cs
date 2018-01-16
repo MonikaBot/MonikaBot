@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace MonikaBot.Commands
 {
+    public enum ModuleType
+    {
+        Internal = 0,
+        External
+    }
+
     public abstract class IModule
     {
         /// <summary>
@@ -22,6 +28,12 @@ namespace MonikaBot.Commands
         /// A list of the commands this module contains
         /// </summary>
         public virtual List<ICommand> Commands { get; internal set; } = new List<ICommand>();
+
+        /// <summary>
+        /// Gets or sets the kind of the module.
+        /// </summary>
+        /// <value>The kind of the module.</value>
+        public virtual ModuleType ModuleKind { get; set; } = ModuleType.Internal;
 
         /// <summary>
         /// Installs the module's commands into the commands manager

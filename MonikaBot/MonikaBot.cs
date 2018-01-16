@@ -8,6 +8,8 @@ using MonikaBot.Commands;
 using DSharpPlus.EventArgs;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Collections;
 
 namespace MonikaBot
 {
@@ -161,7 +163,7 @@ namespace MonikaBot
         {
             // Setup the command manager for processing commands.
             SetupInternalCommands();
-#if DEBUG
+#if DEBUG && ASDLASDFASDFASDFASDFASDFASDFASDFASDF
             /// This stuff is only loaded if we're working with a "Debug" configuration in Visual Studio
             IModule funModule = new FunModule.FunModule();
             funModule.Install(commandManager);
@@ -171,14 +173,73 @@ namespace MonikaBot
 
         private void LoadModules()
         {
+            IEnumerable dllEnumerable = Directory.EnumerateFiles("modules", "*.dll");
 #if DEBUG
             string dllsString = "";
-            foreach(var directory in Directory.EnumerateFiles("modules", "*.dll"))
+            foreach(var filePath in Directory.EnumerateFiles("modules", "*.dll"))
             {
-                dllsString += $"{directory}, ";
+                dllsString += $"{filePath} (Valid: {IsValidModule(filePath)}), ";
+
             }
             Console.WriteLine($"DLLs in modules directory: {dllsString}");
 #endif
+            foreach(var module in dllEnumerable)
+            {
+                if(IsValidModule(module.ToString()))
+                {
+                    IModule moduleToInstall = GetModule(module.ToString());
+                    if (moduleToInstall != null)
+                    {
+                        Console.WriteLine($"Installing module {moduleToInstall.Name} from DLL");
+                        moduleToInstall.Install(commandManager);
+                    }
+                }
+            }
+        }
+
+        private bool IsValidModule(string modulePath)
+        {
+            if (File.Exists(modulePath))
+            {
+#if DEBUG
+                Console.WriteLine($"Verifying module at {modulePath}");
+#endif
+                Assembly module = Assembly.LoadFrom(modulePath);
+                Type type = module.GetType("ModuleEntryPoint");
+                if (type != null)
+                {
+                    object o = Activator.CreateInstance(type);
+                    if (o != null)
+                    {
+                        return true;
+                    }
+                }
+
+                module = null;
+            }
+
+            return false;
+        }
+
+        private IModule GetModule(string modulePath)
+        {
+#if DEBUG
+            Console.WriteLine($"Loading module at {modulePath}");
+#endif
+            Assembly module = Assembly.LoadFrom(modulePath);
+            Type type = module.GetType("ModuleEntryPoint");
+            object o = Activator.CreateInstance(type);
+            if(o != null)
+            {
+                IModule moduleCode = (o as IModuleEntryPoint).GetModule();
+                if (moduleCode.ModuleKind != ModuleType.External)
+                    return null;
+#if DEBUG
+                Console.WriteLine($"Module loaded successfully! {moduleCode.Name}: {moduleCode.Description}");
+#endif
+                return moduleCode;
+            }
+            return null;
         }
 
         private Task Client_GuildAvailable(DSharpPlus.EventArgs.GuildCreateEventArgs e)
