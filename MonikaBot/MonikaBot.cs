@@ -7,6 +7,7 @@ using System.Linq;
 using MonikaBot.Commands;
 using DSharpPlus.EventArgs;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace MonikaBot
 {
@@ -144,6 +145,19 @@ namespace MonikaBot
             /// Hold off on initing commands and modules until AFTER we've setup with an owner.
             if (!SetupMode)
             {
+                if (File.Exists("permissions.json"))
+                {
+                    var permissionsDictionary = JsonConvert.DeserializeObject<Dictionary<string, PermissionType>>(File.ReadAllText("permissions.json"));
+                    if (permissionsDictionary == null)
+                        permissionsDictionary = new Dictionary<string, PermissionType>();
+                    if (permissionsDictionary.Count == 0 && !String.IsNullOrEmpty(config.OwnerID))
+                        permissionsDictionary.Add(config.OwnerID, PermissionType.Owner);
+
+                    commandManager.OverridePermissionsDictionary(permissionsDictionary);
+
+                    Console.WriteLine("Permissions dictionary loaded!");
+                }
+
                 InitCommands();
             }
 
@@ -232,74 +246,6 @@ namespace MonikaBot
         {
             IModule ownerModule = new OwnerModule.BaseOwnerModules(this);
             ownerModule.Install(commandManager);
-
-            commandManager.AddCommand(new CommandStub("cmdinfo", "Displays help for a command.", "Help", PermissionType.User, 2, e =>
-            {
-                if (!String.IsNullOrEmpty(e.Args[0]))
-                {
-                    ICommand stub = commandManager.Commands.FirstOrDefault(x => x.Key == e.Args[0]).Value;
-
-                    if (stub != null)
-                    {
-                        string msg = "**Help for " + stub.CommandName + "**";
-                        msg += $"\n{stub.Description}";
-                        if (!String.IsNullOrEmpty(stub.HelpTag))
-                            msg += $"\n\n{stub.HelpTag}";
-                        if (stub.Parent != null)
-                            msg += $"\nFrom module `{stub.Parent.Name}`";
-                        if (stub.ID != null)
-                            msg += $"\n`{stub.ID}`";
-                        e.Channel.SendMessageAsync(msg);
-                    }
-                    else
-                    {
-                        e.Channel.SendMessageAsync("What command?");
-                    }
-                }
-                else
-                    e.Channel.SendMessageAsync("What command?");
-            }));
-
-            commandManager.AddCommand(new CommandStub("os", "Displays OS info for the bot.", "OS information", PermissionType.User, 0, e =>
-            {
-                e.Channel.SendMessageAsync($"I'm currently being hosted on a system running `{OperatingSystemDetermination.GetUnixName()}`~!");
-                if (OperatingSystemDetermination.IsOnMac())
-                {
-                    Task.Delay(1000);
-                    e.Channel.SendMessageAsync("My favourite!");
-                }
-            }));
-
-            commandManager.AddCommand(new CommandStub("flushroles", "Writes roles to `permissions.json` file.", "Writes roles file to disk.", PermissionType.Owner, 0, e =>
-            {
-                File.WriteAllText("permissions.json", JsonConvert.SerializeObject(CommandsManager.UserRoles));
-                e.Channel.SendMessageAsync(":thumbsup:");
-            }));
-
-            commandManager.AddCommand(new CommandStub("moduleinfo", "Shows information about a specific module.", "", PermissionType.User, 1, cmdArgs =>
-            {
-                if (cmdArgs.Args.Count > 0 && cmdArgs.Args[0].Length > 0)
-                {
-                    foreach (var module in commandManager.Modules.ToList())
-                    {
-                        if (module.Key.Name.ToLower().Trim() == cmdArgs.Args[0].ToLower().Trim())
-                        {
-                            string msg = $"**About Module {module.Key.Name}**";
-
-                            msg += $"\n{module.Key.Description}\nEnabled: {module.Value}";
-                            msg += $"\nCommands ({module.Key.Commands.Count} Total): ";
-
-                            foreach(var command in module.Key.Commands)
-                            {
-                                msg += $"{command.CommandName}, ";
-                            }
-
-                            cmdArgs.Channel.SendMessageAsync(msg);
-                            break;
-                        }
-                    }
-                }
-            }));
         }
 
         private void ProcessCommand(string rawString, MessageCreateEventArgs e)

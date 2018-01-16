@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using MonikaBot.Commands;
+using Newtonsoft.Json;
 
 namespace MonikaBot.OwnerModule
 {
@@ -20,7 +22,7 @@ namespace MonikaBot.OwnerModule
         public BaseOwnerModules(MonikaBot main)
         {
             mainEntry = main;
-            Name = "base";
+            Name = "Base";
             Description = "The base set of modules that cannot be enabled or disabled by the user.";
         }
         public override void Install(CommandsManager manager)
@@ -105,14 +107,14 @@ namespace MonikaBot.OwnerModule
 
             manager.AddCommand(new CommandStub("modules", "Lists all the modules and whether or not they're enabled.", "",
                 PermissionType.Owner, cmdArgs =>
+            {
+                string msg = $"**Modules**";
+                foreach (var kvp in manager.Modules)
                 {
-                    string msg = $"**Modules**";
-                    foreach (var kvp in manager.Modules)
-                    {
-                        msg += $"\n`{kvp.Key.Name}` - {kvp.Value.ToString()}";
-                    }
+                    msg += $"\n`{kvp.Key.Name}` - {(kvp.Value ? "Enabled" : "Disabled")}";
+                }
                 cmdArgs.Channel.SendMessageAsync(msg);
-                }), this);
+            }), this);
 
             manager.AddCommand(new CommandStub("changeprefix", "Changes the command prefix to a specified character.", "", PermissionType.Owner, 1, cmdArgs =>
             {
@@ -133,6 +135,74 @@ namespace MonikaBot.OwnerModule
                 }
                 else
                     cmdArgs.Channel.SendMessageAsync("What prefix?");
+            }), this);
+
+            manager.AddCommand(new CommandStub("cmdinfo", "Displays help for a command.", "Help", PermissionType.User, 2, e =>
+            {
+                if (!String.IsNullOrEmpty(e.Args[0]))
+                {
+                    ICommand stub = manager.Commands.FirstOrDefault(x => x.Key == e.Args[0]).Value;
+
+                    if (stub != null)
+                    {
+                        string msg = "**Help for " + stub.CommandName + "**";
+                        msg += $"\n{stub.Description}";
+                        if (!String.IsNullOrEmpty(stub.HelpTag))
+                            msg += $"\n\n{stub.HelpTag}";
+                        if (stub.Parent != null)
+                            msg += $"\nFrom module `{stub.Parent.Name}`";
+                        if (stub.ID != null)
+                            msg += $"\n`{stub.ID}`";
+                        e.Channel.SendMessageAsync(msg);
+                    }
+                    else
+                    {
+                        e.Channel.SendMessageAsync("What command?");
+                    }
+                }
+                else
+                    e.Channel.SendMessageAsync("What command?");
+            }), this);
+
+            manager.AddCommand(new CommandStub("os", "Displays OS info for the bot.", "OS information", PermissionType.User, 0, e =>
+            {
+                e.Channel.SendMessageAsync($"I'm currently being hosted on a system running `{OperatingSystemDetermination.GetUnixName()}`~!");
+                if (OperatingSystemDetermination.IsOnMac())
+                {
+                    Task.Delay(1000);
+                    e.Channel.SendMessageAsync("My favourite!");
+                }
+            }), this);
+
+            manager.AddCommand(new CommandStub("flushroles", "Writes roles to `permissions.json` file.", "Writes roles file to disk.", PermissionType.Owner, 0, e =>
+            {
+                File.WriteAllText("permissions.json", JsonConvert.SerializeObject(CommandsManager.UserRoles));
+                e.Channel.SendMessageAsync(":thumbsup:");
+            }), this);
+
+            manager.AddCommand(new CommandStub("moduleinfo", "Shows information about a specific module.", "", PermissionType.User, 1, cmdArgs =>
+            {
+                if (cmdArgs.Args.Count > 0 && cmdArgs.Args[0].Length > 0)
+                {
+                    foreach (var module in manager.Modules.ToList())
+                    {
+                        if (module.Key.Name.ToLower().Trim() == cmdArgs.Args[0].ToLower().Trim())
+                        {
+                            string msg = $"**About Module {module.Key.Name}**";
+
+                            msg += $"\n{module.Key.Description}\nEnabled: {module.Value}";
+                            msg += $"\nCommands ({module.Key.Commands.Count} Total): ";
+
+                            foreach (var command in module.Key.Commands)
+                            {
+                                msg += $"{command.CommandName}, ";
+                            }
+
+                            cmdArgs.Channel.SendMessageAsync(msg);
+                            break;
+                        }
+                    }
+                }
             }), this);
 
             /* TODO
