@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace MonikaBot.Commands
 {
@@ -65,6 +67,24 @@ namespace MonikaBot.Commands
             get
             {
                 return __internalUserRoles;
+            }
+        }
+
+        public void WritePermissionsFile(string path = "permissions.json")
+        {
+            File.WriteAllText("permissions.json", JsonConvert.SerializeObject(UserRoles));
+        }
+
+        public void ReadPermissionsFile(string path = "permissions.json")
+        {
+            if (File.Exists("permissions.json"))
+            {
+                var permissionsDictionary = JsonConvert.DeserializeObject<Dictionary<string, PermissionType>>(File.ReadAllText("permissions.json"));
+                if (permissionsDictionary == null)
+                    permissionsDictionary = new Dictionary<string, PermissionType>();
+                OverridePermissionsDictionary(permissionsDictionary);
+
+                Console.WriteLine("Permissions dictionary loaded!");
             }
         }
 

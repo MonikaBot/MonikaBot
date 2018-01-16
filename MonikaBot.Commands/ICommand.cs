@@ -15,6 +15,15 @@ namespace MonikaBot.Commands
         public string FromIntegration { get; internal set; }
     }
 
+    public enum CommandTrigger
+    {
+        MessageCreate = 0,
+        UserJoinedServer,
+        BotJoinedServer,
+        UserLeftServer,
+        BotLeftServer
+    }
+
     public abstract class ICommand
     {
         /// <summary>
@@ -44,6 +53,12 @@ namespace MonikaBot.Commands
         /// The module this command came from.
         /// </summary>
         public virtual IModule Parent { get; internal set; }
+
+        /// <summary>
+        /// Sets the event for the command to trigger. 
+        /// </summary>
+        /// <value>The trigger.</value>
+        public virtual CommandTrigger Trigger { get; internal set; } = CommandTrigger.MessageCreate;
 
         /// <summary>
         /// The permission type that the command takes.

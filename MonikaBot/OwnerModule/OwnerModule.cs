@@ -57,6 +57,7 @@ namespace MonikaBot.OwnerModule
                     manager.AddPermission(id, type);
                     e.Channel.SendMessageAsync($"Given permission {type.ToString().Substring(type.ToString().IndexOf('.') + 1)} to <@{id}>!");
                 }
+                File.WriteAllText("permissions.json", JsonConvert.SerializeObject(CommandsManager.UserRoles));
             }), this);
 
             manager.AddCommand(new CommandStub("disablemodule", "Disables a module by name", "The module name is case insensitive.", PermissionType.Owner, 1, cmdArgs =>
@@ -172,12 +173,6 @@ namespace MonikaBot.OwnerModule
                     Task.Delay(1000);
                     e.Channel.SendMessageAsync("My favourite!");
                 }
-            }), this);
-
-            manager.AddCommand(new CommandStub("flushroles", "Writes roles to `permissions.json` file.", "Writes roles file to disk.", PermissionType.Owner, 0, e =>
-            {
-                File.WriteAllText("permissions.json", JsonConvert.SerializeObject(CommandsManager.UserRoles));
-                e.Channel.SendMessageAsync(":thumbsup:");
             }), this);
 
             manager.AddCommand(new CommandStub("moduleinfo", "Shows information about a specific module.", "", PermissionType.User, 1, cmdArgs =>

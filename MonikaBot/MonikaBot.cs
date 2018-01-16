@@ -145,20 +145,13 @@ namespace MonikaBot
             /// Hold off on initing commands and modules until AFTER we've setup with an owner.
             if (!SetupMode)
             {
-                if (File.Exists("permissions.json"))
-                {
-                    var permissionsDictionary = JsonConvert.DeserializeObject<Dictionary<string, PermissionType>>(File.ReadAllText("permissions.json"));
-                    if (permissionsDictionary == null)
-                        permissionsDictionary = new Dictionary<string, PermissionType>();
-                    if (permissionsDictionary.Count == 0 && !String.IsNullOrEmpty(config.OwnerID))
-                        permissionsDictionary.Add(config.OwnerID, PermissionType.Owner);
-
-                    commandManager.OverridePermissionsDictionary(permissionsDictionary);
-
-                    Console.WriteLine("Permissions dictionary loaded!");
-                }
+                commandManager.ReadPermissionsFile();
+                if (CommandsManager.UserRoles.Count == 0 && !String.IsNullOrEmpty(config.OwnerID))
+                    CommandsManager.UserRoles.Add(config.OwnerID, PermissionType.Owner);
+                
 
                 InitCommands();
+                LoadModules();
             }
 
             return Task.Delay(0);
@@ -168,13 +161,23 @@ namespace MonikaBot
         {
             // Setup the command manager for processing commands.
             SetupInternalCommands();
-
-
 #if DEBUG
             /// This stuff is only loaded if we're working with a "Debug" configuration in Visual Studio
             IModule funModule = new FunModule.FunModule();
             funModule.Install(commandManager);
             Console.WriteLine($"[MODULE]: Installed module {funModule.Name} (Desc: {funModule.Description})");
+#endif
+        }
+
+        private void LoadModules()
+        {
+#if DEBUG
+            string dllsString = "";
+            foreach(var directory in Directory.EnumerateFiles("modules", "*.dll"))
+            {
+                dllsString += $"{directory}, ";
+            }
+            Console.WriteLine($"DLLs in modules directory: {dllsString}");
 #endif
         }
 
@@ -221,8 +224,7 @@ namespace MonikaBot
                             config.WriteConfig();
                             e.Channel.SendMessageAsync($"I'm all yours, {e.Message.Author.Mention}~!");
                             commandManager.AddPermission(e.Message.Author, PermissionType.Owner);
-                            File.WriteAllText("permissions.json", JsonConvert.SerializeObject(CommandsManager.UserRoles)); //Write the permissions file to the disk so she remembers who her owner is.
-
+                            commandManager.WritePermissionsFile(); //Write the permissions file to the disk so she remembers who her owner is.
 
                             InitCommands();
                         }
