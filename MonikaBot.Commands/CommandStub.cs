@@ -40,12 +40,13 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
-        public CommandStub(string name, string description)
+        public CommandStub(string name, string description, CommandTrigger trigger = CommandTrigger.MessageCreate)
         {
             this.ID = IDGenerator.GenerateRandomCode();
 
             CommandName = name;
             Description = description;
+            Trigger = trigger;
 
             Args = new List<string>();
         }
@@ -59,18 +60,19 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
-        public CommandStub(string name, string description, Action<CommandArgs> action)
+        public CommandStub(string name, string description, Action<CommandArgs> action, CommandTrigger trigger = CommandTrigger.MessageCreate)
         {
             this.ID = IDGenerator.GenerateRandomCode();
 
             Do = action;
             CommandName = name;
             Description = description;
+            Trigger = trigger;
 
             Args = new List<string>();
         }
 
-        public CommandStub(string name, string description, string helpTag, Action<CommandArgs> action)
+        public CommandStub(string name, string description, string helpTag, Action<CommandArgs> action, CommandTrigger trigger = CommandTrigger.MessageCreate)
         {
             this.ID = IDGenerator.GenerateRandomCode();
 
@@ -78,11 +80,12 @@ namespace MonikaBot.Commands
             CommandName = name;
             Description = description;
             HelpTag = helpTag;
+            Trigger = trigger;
 
             Args = new List<string>();
         }
 
-        public CommandStub(string name, string description, string helpTag, PermissionType minPerm, Action<CommandArgs> action)
+        public CommandStub(string name, string description, string helpTag, PermissionType minPerm, Action<CommandArgs> action, CommandTrigger trigger = CommandTrigger.MessageCreate)
         {
             this.ID = IDGenerator.GenerateRandomCode();
 
@@ -91,6 +94,22 @@ namespace MonikaBot.Commands
             Description = description;
             HelpTag = helpTag;
             MinimumPermission = minPerm;
+            Trigger = trigger;
+
+            Args = new List<string>();
+        }
+
+        public CommandStub(string name, string description, string helpTag, PermissionType minPerm, int argCount, Action<CommandArgs> action, CommandTrigger trigger = CommandTrigger.MessageCreate)
+        {
+            this.ID = IDGenerator.GenerateRandomCode();
+
+            Do = action;
+            CommandName = name;
+            Description = description;
+            HelpTag = helpTag;
+            MinimumPermission = minPerm;
+            ArgCount = argCount;
+            Trigger = trigger;
 
             Args = new List<string>();
         }
@@ -109,15 +128,6 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
-        [Obsolete]
-        public override void ExecuteCommand()
-        {
-            CommandArgs e = new CommandArgs();
-            e.Args = this.Args;
-            Do.Invoke(e);
-        }
-
-        
         public override void ExecuteCommand(DiscordChannel channel, DiscordUser member)
         {
             CommandArgs e = new CommandArgs();

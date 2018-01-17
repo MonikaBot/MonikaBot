@@ -21,7 +21,8 @@ namespace MonikaBot.Commands
         UserJoinedServer,
         BotJoinedServer,
         UserLeftServer,
-        BotLeftServer
+        BotLeftServer,
+        BotMentioned
     }
 
     public abstract class ICommand
@@ -70,7 +71,6 @@ namespace MonikaBot.Commands
         internal virtual Type __typeofCommand { get; set; }
         public virtual string ID { get; set; }
 
-        public abstract void ExecuteCommand();
         public abstract void ExecuteCommand(DiscordChannel channel, DiscordUser member);
 
         //public string ReturnArgument(string argName)

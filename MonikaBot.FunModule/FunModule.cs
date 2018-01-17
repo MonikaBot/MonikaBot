@@ -76,11 +76,11 @@ namespace MonikaBot.FunModule
                 manager.rng.Next(0, EightballMessages.Length);
                 int index = manager.rng.Next(0, EightballMessages.Length);
                 cmdArgs.Channel.SendMessageAsync($"{cmdArgs.Author.Mention}: **{EightballMessages[index]}**");
-            }), this);
-            manager.AddCommand(new CommandStub("42", "..", "...", PermissionType.User, cmdArgs =>
+            }, trigger: CommandTrigger.BotMentioned), this);
+            manager.AddCommand(new CommandStub("42", "..", "...", PermissionType.User, 0, cmdArgs =>
             {
                 cmdArgs.Channel.SendMessageAsync("The answer to life, the universe, and everything.");
-            }), this);
+            }, trigger: CommandTrigger.BotMentioned), this);
         }
     }
 }

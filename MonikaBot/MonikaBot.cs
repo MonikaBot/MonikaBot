@@ -13,6 +13,7 @@ using System.Collections;
 
 namespace MonikaBot
 {
+
     public class MonikaBot : IDisposable
     {
         private DiscordClient client;
@@ -47,11 +48,7 @@ namespace MonikaBot
                 SetupMode = true;
                 AuthorizationCode = RandomCodeGenerator.GenerateRandomCode(10);
 
-                var oldColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("Warning: ");
-                Console.ForegroundColor = oldColor;
-                Console.Write($"Bot is in setup mode. Please type this command in a channel the bot has access to: \n      {config.Prefix}authenticate {AuthorizationCode}\n");
+                Log(LogLevel.Warning, $"Bot is in setup mode. Please type this command in a channel the bot has access to: \n      {config.Prefix}authenticate {AuthorizationCode}\n");
             }
 
             /// Setup the Client
@@ -66,10 +63,10 @@ namespace MonikaBot
             };
             client = new DiscordClient(dConfig);
 
-            Console.WriteLine("OS: " + OperatingSystemDetermination.GetUnixName());
+            Log(LogLevel.Info, "OS: " + OperatingSystemDetermination.GetUnixName());
             if (OperatingSystemDetermination.GetUnixName().Contains("Windows 7") || OperatingSystemDetermination.IsOnMac() || OperatingSystemDetermination.IsOnUnix())
             {
-                Console.WriteLine("On macOS, Windows 7, or Unix; using WebSocket4Net");
+                Log(LogLevel.Info, "On macOS, Windows 7, or Unix; using WebSocket4Net");
                 //only do this on windows 7 or Unix systems
                 client.SetWebSocketClient<DSharpPlus.Net.WebSocket.WebSocket4NetClient>();
             }
@@ -181,7 +178,7 @@ namespace MonikaBot
                 dllsString += $"{filePath} (Valid: {IsValidModule(filePath)}), ";
 
             }
-            Console.WriteLine($"DLLs in modules directory: {dllsString}");
+            Log(LogLevel.Debug, $"DLLs in modules directory: {dllsString}");
 #endif
             foreach(var module in dllEnumerable)
             {
@@ -190,7 +187,7 @@ namespace MonikaBot
                     IModule moduleToInstall = GetModule(module.ToString());
                     if (moduleToInstall != null)
                     {
-                        Console.WriteLine($"Installing module {moduleToInstall.Name} from DLL");
+                        Log(LogLevel.Debug, $"Installing module {moduleToInstall.Name} from DLL");
                         moduleToInstall.Install(commandManager);
                     }
                 }
@@ -224,7 +221,7 @@ namespace MonikaBot
         private IModule GetModule(string modulePath)
         {
 #if DEBUG
-            Console.WriteLine($"Loading module at {modulePath}");
+            Log(LogLevel.Debug, $"Loading module at {modulePath}");
 #endif
             Assembly module = Assembly.LoadFrom(modulePath);
             Type type = module.GetType("ModuleEntryPoint");
@@ -234,9 +231,8 @@ namespace MonikaBot
                 IModule moduleCode = (o as IModuleEntryPoint).GetModule();
                 if (moduleCode.ModuleKind != ModuleType.External)
                     return null;
-#if DEBUG
-                Console.WriteLine($"Module loaded successfully! {moduleCode.Name}: {moduleCode.Description}");
-#endif
+                
+                Log(LogLevel.Info, $"Module loaded successfully! {moduleCode.Name}: {moduleCode.Description}");
                 return moduleCode;
             }
             return null;
@@ -244,16 +240,7 @@ namespace MonikaBot
 
         private Task Client_GuildAvailable(DSharpPlus.EventArgs.GuildCreateEventArgs e)
         {
-            Console.WriteLine("Guild available: " + e.Guild.Name);
-
-            //Lists all the channels
-            string channels = "Channels: ";
-            foreach (var channel in e.Guild.Channels)
-            {
-                channels += $"{channel.Name} ({channel.Type.ToString()}), ";
-            }
-            Console.WriteLine(channels);
-
+            
             //Fancy way to send a message to a channel
 
             //DiscordChannel channelToSend = e.Guild.Channels.Where(x => x.Name == "dev" && x.Type == ChannelType.Text).First();
@@ -269,7 +256,14 @@ namespace MonikaBot
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($" {e.Message.Content}\n");
 
-            if(e.Message.Content.StartsWith(config.Prefix)) // We check if the message received starts with our bot's command prefix. If it does...
+            if(e.Message.MentionedUsers.Contains(client.CurrentUser))
+            {
+                if(!SetupMode)
+                {
+                    ProcessCommand(e.Message.Content, e, CommandTrigger.BotMentioned);
+                }
+            }
+            else if(e.Message.Content.StartsWith(config.Prefix)) // We check if the message received starts with our bot's command prefix. If it does...
             {
                 if (SetupMode)
                 {
@@ -295,7 +289,7 @@ namespace MonikaBot
                 }
                 // We move onto processing the command.
                 // We pass in the MessageCreateEventArgs so we can get other information like channel, author, etc. The CommandsManager wants these things
-                ProcessCommand(e.Message.Content, e);
+                ProcessCommand(e.Message.Content, e, CommandTrigger.MessageCreate);
                       
             }
 
@@ -311,7 +305,7 @@ namespace MonikaBot
             ownerModule.Install(commandManager);
         }
 
-        private void ProcessCommand(string rawString, MessageCreateEventArgs e)
+        private void ProcessCommand(string rawString, MessageCreateEventArgs e, CommandTrigger type)
         {
             // The first thing we do is get rid of the prefix string from the command. We take the message from looking like say this:
             // --say something
@@ -323,7 +317,10 @@ namespace MonikaBot
             // A try catch block for executing the command and catching various things and reporting on errors.
             try
             {
-                commandManager.ExecuteOnMessageCommand(rawCommand, e.Channel, e.Author);
+                if (type == CommandTrigger.MessageCreate)
+                    commandManager.ExecuteOnMessageCommand(rawCommand, e.Channel, e.Author);
+                else if (type == CommandTrigger.BotMentioned)
+                    commandManager.ExecuteOnMentionCommand(rawCommand, e.Channel, e.Author);
             }
             catch (UnauthorizedAccessException ex) // Bad permission
             {
@@ -348,6 +345,34 @@ namespace MonikaBot
             if(client != null)
                 client.Dispose();
             config = null;
+        }
+
+        public static void Log(LogLevel level, string text)
+        {
+            ConsoleColor oldColor = Console.ForegroundColor;
+
+            switch(level)
+            {
+                case LogLevel.Error:
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    break;
+                case LogLevel.Warning:
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    break;
+                case LogLevel.Critical:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                case LogLevel.Info:
+                    Console.ForegroundColor = ConsoleColor.White;
+                    break;
+                default:
+                    Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    break;
+            }
+
+            Console.Write($"[{DateTime.Now.ToString()}] [MonikaBot] [{level.ToString()}] ");
+            Console.ForegroundColor = oldColor;
+            Console.Write($"{text}\n");
         }
     }
 }

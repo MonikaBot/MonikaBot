@@ -172,9 +172,12 @@ namespace MonikaBot.Commands
             string[] split = rawCommandText.Split(new char[] { ' ' }); //splits into args and stuff
             try
             {
+                if (!__commands.ContainsKey(split[1]))
+                    return 1;
+                
                 var command = __commands[split[0]];
 
-                if (command != null && command.Parent != null) //if it's a generic command without a parent then don't bother doing this.
+                if (command != null && command.Parent != null && command.Trigger.HasFlag(CommandTrigger.MessageCreate)) //if it's a generic command without a parent then don't bother doing this.
                 {
                     lock(__modules)
                     {
@@ -185,7 +188,7 @@ namespace MonikaBot.Commands
                     }
                 }
 
-                if(command != null)
+                if(command != null && command.Trigger.HasFlag(CommandTrigger.MessageCreate))
                 {
                     command.Args.Clear();
                     if (command.ArgCount > 0)
@@ -210,6 +213,58 @@ namespace MonikaBot.Commands
             }
             return 1;
         }
+
+        public int ExecuteOnMentionCommand(string rawCommandText, DiscordChannel channel, DiscordUser author)
+        {
+            string[] split = rawCommandText.Split(new char[] { ' ' });
+            try
+            {
+                /// The flow of the on mention execution will be something like this
+                /// 1. Check and see if there's a command as the second part of the message
+                /// 2. if there is, go ahead and figure out what we need to execute
+                /// 3. if there isn't, then oh well we'll do some chat stuff instead but that'll be handled (more than likely) inside of Monika bot instead of in a module
+
+                if (split.Length <= 1)
+                    return 1;
+                if (!__commands.ContainsKey(split[1]))
+                    return 1;
+
+                var command = __commands[split[1]];
+                if(command != null && command.Parent != null && command.Trigger.HasFlag(CommandTrigger.BotMentioned))
+                {
+                    lock(__modules)
+                    {
+                        if(__modules[command.Parent] == false)
+                        {
+                            throw new ModuleNotEnabledException($"The specified module {command.Parent.Name} is not enabled.", command.Parent);
+                        }
+                    }
+                }
+
+                if (command != null && command.Trigger.HasFlag(CommandTrigger.BotMentioned)) // Verify to make sure the command is only executed if the bot is allowed to execute this command on a Mention trigger
+                {
+                    command.Args.Clear();
+                    if (command.ArgCount > 0)
+                    {
+                        string[] argsSplit = rawCommandText.Split(new char[] { ' ' }, command.ArgCount + 1);
+                        //adds all the arguments
+                        for (int i = 1; i < argsSplit.Length; i++)
+                            command.AddArgument(argsSplit[i]);
+                    }
+                    //finally, executes it
+                    command.ExecuteCommand(/*__client,*/ channel, author);
+                    return 0;
+                }
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+
+            return 1;
+        }
+
+
 
         public bool ModuleEnabled(string name)
         {
