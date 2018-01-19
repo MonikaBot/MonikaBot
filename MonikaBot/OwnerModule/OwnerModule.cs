@@ -120,7 +120,7 @@ namespace MonikaBot.OwnerModule
                 }
                 cmdArgs.Channel.SendMessageAsync(msg);
             }), this);
-
+            manager.AddCommand(new CommandStub("commands", "Lists all of the available commands"));
             manager.AddCommand(new CommandStub("changeprefix", "Changes the command prefix to a specified character.", "", PermissionType.Owner, 1, cmdArgs =>
             {
                 if (cmdArgs.Args.Count > 0)
