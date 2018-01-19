@@ -41,12 +41,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MonikaBot.Commands\MonikaBot.Commands.csproj">
-      <Project>{2E99D97F-3480-43E2-AC9D-7DAE521CB610}</Project>
-      <Name>MonikaBot.Commands</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
