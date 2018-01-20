@@ -183,7 +183,7 @@ namespace MonikaBot.OwnerModule
                 e.Channel.SendMessageAsync($"I'm currently being hosted on a system running `{OperatingSystemDetermination.GetUnixName()}`~!");
                 if (OperatingSystemDetermination.IsOnMac())
                 {
-                    Task.Delay(1000);
+                    Thread.Sleep(1500);
                     e.Channel.SendMessageAsync("My favourite!");
                 }
             }), this);
