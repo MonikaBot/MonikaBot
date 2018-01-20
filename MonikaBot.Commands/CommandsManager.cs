@@ -170,9 +170,16 @@ namespace MonikaBot.Commands
         public int ExecuteOnMessageCommand(string rawCommandText, DiscordChannel channel, DiscordUser author)
         {
             string[] split = rawCommandText.Split(new char[] { ' ' }); //splits into args and stuff
+#if DEBUG
+            Console.Write("[Command Manager] Args: ");
+            foreach (var arg in split)
+                Console.Write(arg + ", ");
+            Console.Write($" (Size: {split.Length}");
+            Console.Write("\n");
+#endif
             try
             {
-                if (!__commands.ContainsKey(split[1]))
+                if (!__commands.ContainsKey(split[0]))
                     return 1;
                 
                 var command = __commands[split[0]];

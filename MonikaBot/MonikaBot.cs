@@ -24,7 +24,7 @@ namespace MonikaBot
 
         public MonikaBot()
         {
-            if(!File.Exists("config.json")) //check if the configuration file exists
+            if (!File.Exists("config.json")) //check if the configuration file exists
             {
                 new MonikaBotConfig().WriteConfig("config.json");
                 Console.WriteLine("Please edit the config file!");
@@ -37,13 +37,13 @@ namespace MonikaBot
             config = config.LoadConfig("config.json");
 
             /// Verify parts of the config
-            if(config.Token == MonikaBotConfig.BlankTokenString) //this is static so I have to reference by class name vs. an instance of the class.
+            if (config.Token == MonikaBotConfig.BlankTokenString) //this is static so I have to reference by class name vs. an instance of the class.
             {
                 Console.WriteLine("Please edit the config file!");
 
                 return;
             }
-            if(config.OwnerID == MonikaBotConfig.BlankOwnerIDString || String.IsNullOrEmpty(config.OwnerID))
+            if (config.OwnerID == MonikaBotConfig.BlankOwnerIDString || String.IsNullOrEmpty(config.OwnerID))
             {
                 SetupMode = true;
                 AuthorizationCode = RandomCodeGenerator.GenerateRandomCode(10);
@@ -147,7 +147,7 @@ namespace MonikaBot
                 commandManager.ReadPermissionsFile();
                 if (CommandsManager.UserRoles.Count == 0 && !String.IsNullOrEmpty(config.OwnerID))
                     CommandsManager.UserRoles.Add(config.OwnerID, PermissionType.Owner);
-                
+
 
                 InitCommands();
                 LoadModules();
@@ -173,16 +173,16 @@ namespace MonikaBot
             IEnumerable dllEnumerable = Directory.EnumerateFiles("modules", "*.dll");
 #if DEBUG
             string dllsString = "";
-            foreach(var filePath in Directory.EnumerateFiles("modules", "*.dll"))
+            foreach (var filePath in Directory.EnumerateFiles("modules", "*.dll"))
             {
                 dllsString += $"{filePath} (Valid: {IsValidModule(filePath)}), ";
 
             }
             Log(LogLevel.Debug, $"DLLs in modules directory: {dllsString}");
 #endif
-            foreach(var module in dllEnumerable)
+            foreach (var module in dllEnumerable)
             {
-                if(IsValidModule(module.ToString()))
+                if (IsValidModule(module.ToString()))
                 {
                     IModule moduleToInstall = GetModule(module.ToString());
                     if (moduleToInstall != null)
@@ -199,17 +199,41 @@ namespace MonikaBot
             if (File.Exists(modulePath))
             {
 #if DEBUG
+
                 Console.WriteLine($"Verifying module at {modulePath}");
 #endif
                 Assembly module = Assembly.LoadFrom(modulePath);
-                Type type = module.GetType("ModuleEntryPoint");
-                if (type != null)
+                AssemblyName[] references = module.GetReferencedAssemblies();
+
+#if lol
+
+                foreach(var refAssemblyName in references)
                 {
-                    object o = Activator.CreateInstance(type);
-                    if (o != null)
+                    Log(LogLevel.Debug, "     Depends on: " + refAssemblyName.Name);
+                    if (Constants.DontLoadTheseDependencies.Contains(refAssemblyName.Name))
+                    { continue; }
+
+                    if (refAssemblyName.Name == "MonikaBot.Commands")
+                        Assembly.LoadFrom("../MonikaBot.CommandManager.dll");
+                    else
+                        Assembly.LoadFrom(refAssemblyName.Name);
+                }
+#endif
+                try
+                {
+                    Type type = module.GetType("ModuleEntryPoint");
+                    if (type != null)
                     {
-                        return true;
+                        object o = Activator.CreateInstance(type);
+                        if (o != null)
+                        {
+                            return true;
+                        }
                     }
+                }
+                catch(Exception ex)
+                {
+                    Log(LogLevel.Critical, $"Error when Loading Module: {ex.Message}");
                 }
 
                 module = null;
