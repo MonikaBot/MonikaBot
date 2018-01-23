@@ -27,10 +27,24 @@ namespace MonikaBot.OwnerModule
         }
         public override void Install(CommandsManager manager)
         {
+            manager.AddCommand(new CommandStub("uptime", "Check how long the bots been running for.", "No arguments", cmdArgs=>
+            {
+                TimeSpan uptime = DateTime.Now - mainEntry.ReadyTime;
+                cmdArgs.Channel.SendMessageAsync($"I've been running for `{uptime.Days} days, {uptime.Hours} hrs, and {uptime.Minutes} mins`~");
+            }, trigger: CommandTrigger.BotMentioned | CommandTrigger.MessageCreate), this);
             manager.AddCommand(new CommandStub("selfdestruct", "Shuts the bot down.", "", PermissionType.Owner, cmdArgs =>
             {
                 mainEntry.Dispose();
             }), this);
+            manager.AddCommand(new CommandStub("reloadmodules", "Reloads the bot's modules", "No Arguments", PermissionType.Admin, cmdArgs=>
+            {
+                cmdArgs.Channel.SendMessageAsync($"Okay {cmdArgs.Author.Mention}~. Just give me one second!");
+                cmdArgs.Channel.TriggerTypingAsync();
+                int modulesLoaded = mainEntry.LoadModules();
+                Thread.Sleep(2000);
+                cmdArgs.Channel.SendMessageAsync($"I'm back! I reloaded {modulesLoaded} module(s) for you!");
+
+            }, trigger: CommandTrigger.BotMentioned | CommandTrigger.MessageCreate), this);
             manager.AddCommand(new CommandStub("giveperm", "Gives the perm to the specified user (bot scope)", "", PermissionType.Owner, 2, e =>
             {
                 //giveperm Admin <@2309208509852>

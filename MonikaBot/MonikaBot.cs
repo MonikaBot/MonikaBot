@@ -21,6 +21,7 @@ namespace MonikaBot
         internal MonikaBotConfig config;
         private bool SetupMode = false;
         private string AuthorizationCode;
+        internal DateTime ReadyTime;
 
         public MonikaBot()
         {
@@ -139,6 +140,7 @@ namespace MonikaBot
         private Task Client_Ready(DSharpPlus.EventArgs.ReadyEventArgs e)
         {
             Console.WriteLine("Connected!!");
+            ReadyTime = DateTime.Now;
 
             commandManager = new CommandsManager(client);
             /// Hold off on initing commands and modules until AFTER we've setup with an owner.
@@ -168,8 +170,9 @@ namespace MonikaBot
 #endif
         }
 
-        private void LoadModules()
+        internal int LoadModules()
         {
+            int modulesLoaded = 0;
             IEnumerable dllEnumerable = Directory.EnumerateFiles("modules", "*.dll");
 #if DEBUG
             string dllsString = "";
@@ -189,9 +192,11 @@ namespace MonikaBot
                     {
                         Log(LogLevel.Debug, $"Installing module {moduleToInstall.Name} from DLL");
                         moduleToInstall.Install(commandManager);
+                        modulesLoaded++;
                     }
                 }
             }
+            return modulesLoaded;
         }
 
         private bool IsValidModule(string modulePath)
