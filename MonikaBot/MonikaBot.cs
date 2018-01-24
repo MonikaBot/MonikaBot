@@ -210,20 +210,6 @@ namespace MonikaBot
                 Assembly module = Assembly.LoadFrom(modulePath);
                 AssemblyName[] references = module.GetReferencedAssemblies();
 
-#if lol
-
-                foreach(var refAssemblyName in references)
-                {
-                    Log(LogLevel.Debug, "     Depends on: " + refAssemblyName.Name);
-                    if (Constants.DontLoadTheseDependencies.Contains(refAssemblyName.Name))
-                    { continue; }
-
-                    if (refAssemblyName.Name == "MonikaBot.Commands")
-                        Assembly.LoadFrom("../MonikaBot.CommandManager.dll");
-                    else
-                        Assembly.LoadFrom(refAssemblyName.Name);
-                }
-#endif
                 try
                 {
                     Type type = module.GetType("ModuleEntryPoint");
@@ -234,7 +220,11 @@ namespace MonikaBot
                         {
                             return true;
                         }
+                        else
+                            Log(LogLevel.Debug, $"Couldn't create instance of the module object from {modulePath}.");
                     }
+                    else
+                        Log(LogLevel.Debug, $"Not valid module, type `ModuleEntryPoint` not found in {modulePath}.");
                 }
                 catch(Exception ex)
                 {
@@ -259,7 +249,10 @@ namespace MonikaBot
             {
                 IModule moduleCode = (o as IModuleEntryPoint).GetModule();
                 if (moduleCode.ModuleKind != ModuleType.External)
+                {
+                    Log(LogLevel.Debug, $"Module kind not external and therefore not valid in {modulePath}.");
                     return null;
+                }
                 
                 Log(LogLevel.Info, $"Module loaded successfully! {moduleCode.Name}: {moduleCode.Description}");
                 return moduleCode;
