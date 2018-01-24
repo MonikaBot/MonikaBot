@@ -40,7 +40,7 @@ namespace MonikaBot.OwnerModule
             {
                 cmdArgs.Channel.SendMessageAsync($"Okay {cmdArgs.Author.Mention}~. Just give me one second!");
                 cmdArgs.Channel.TriggerTypingAsync();
-                int modulesLoaded = mainEntry.LoadModules();
+                int modulesLoaded = mainEntry.ReloadModules();
                 Thread.Sleep(2000);
                 cmdArgs.Channel.SendMessageAsync($"I'm back! I reloaded {modulesLoaded} module(s) for you!");
 
