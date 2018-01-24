@@ -181,7 +181,10 @@ namespace MonikaBot
         internal int LoadModules()
         {
             int modulesLoaded = 0;
+
+            Directory.GetFiles("modules"); //hopefully just to refresh
             IEnumerable dllEnumerable = Directory.EnumerateFiles("modules", "*.dll");
+
 #if DEBUG
             string dllsString = "";
             foreach (var filePath in Directory.EnumerateFiles("modules", "*.dll"))
