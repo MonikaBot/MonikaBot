@@ -170,6 +170,14 @@ namespace MonikaBot
 #endif
         }
 
+        internal int ReloadModules()
+        {
+            commandManager.ClearModulesAndCommands();
+            SetupInternalCommands();
+
+            return LoadModules();
+        }
+
         internal int LoadModules()
         {
             int modulesLoaded = 0;

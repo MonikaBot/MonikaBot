@@ -67,6 +67,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="monika.sh" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="OwnerModule\" />

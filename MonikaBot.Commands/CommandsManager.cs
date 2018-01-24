@@ -70,6 +70,12 @@ namespace MonikaBot.Commands
             }
         }
 
+        public void ClearModulesAndCommands()
+        {
+            __modules.Clear();
+            __commands.Clear();
+        }
+
         public void WritePermissionsFile(string path = "permissions.json")
         {
             File.WriteAllText("permissions.json", JsonConvert.SerializeObject(UserRoles));
