@@ -9,7 +9,15 @@ namespace MonikaBot
         static void Main(string[] args)
         {
             if (!System.IO.Directory.Exists("modules"))
+            {
                 System.IO.Directory.CreateDirectory("modules");
+                System.IO.Directory.CreateDirectory("modules/disabled");
+            }
+
+            if(!System.IO.Directory.Exists("modules/disabled"))
+            {
+                System.IO.Directory.CreateDirectory("modules/disabled");
+            }
 
             b = new MonikaBot();
             b.ConnectBot();
