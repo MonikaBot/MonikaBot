@@ -10,6 +10,9 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Collections;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json.Converters;
+using System.Runtime.Remoting;
 
 namespace MonikaBot
 {
@@ -22,9 +25,41 @@ namespace MonikaBot
         private bool SetupMode = false;
         private string AuthorizationCode;
         internal DateTime ReadyTime;
+        private AppDomain MonikaBotAppDomain;
+
+        /// <summary>
+        /// The file names of the modules loaded into memory.
+        /// </summary>
+        private List<string> ModulesLoaded;
+
+        private string[] AppDomainDependencies = {"mscorlib", "DSharpPlus.dll", "DSharpPlus.WebSocket.WebSocket4Net.dll", "Newtonsoft.Json.dll", "MonikaBot.CommandManager.dll" };
+
+        private void SetupAppDomain()
+        {
+            foreach(var depend in AppDomainDependencies)
+            {
+                    AssemblyName asm = new AssemblyName();
+                    asm.CodeBase = depend;
+                    Assembly asmTest;
+                    asmTest = MonikaBotAppDomain.Load(asm);
+
+                    Console.WriteLine($"Loaded assembly {asmTest.GetName().ToString()} into AppDomain");
+                    /*Console.WriteLine("Types in assembly " + depend);
+                    Type[] types = asmTest.GetTypes();
+                    foreach (var t in types)
+                    {
+                        Console.Write($"{t}, ");
+                    }
+                    Console.Write("\n\n");*/
+                }
+        }
 
         public MonikaBot()
         {
+            MonikaBotAppDomain = AppDomain.CreateDomain("MonikaBot");
+            SetupAppDomain();
+            ModulesLoaded = new List<string>();
+
             if (!File.Exists("config.json")) //check if the configuration file exists
             {
                 new MonikaBotConfig().WriteConfig("config.json");
@@ -167,6 +202,7 @@ namespace MonikaBot
         internal int ReloadModules(bool actuallyLoad)
         {
             commandManager.ClearModulesAndCommands();
+            ModulesLoaded.Clear();
             SetupInternalCommands();
 
             if (actuallyLoad)
@@ -175,8 +211,54 @@ namespace MonikaBot
                 return 0;
         }
 
+        private void ClearLoadedModulesFromMemory()
+        {
+            //MonikaBotAppDomain.Load()
+        }
+
+        private byte[] GetBinaryFile(string filename)
+        {
+            byte[] bytes;
+            using (FileStream file = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            {
+                bytes = new byte[file.Length];
+                file.Read(bytes, 0, (int)file.Length);
+            }
+            return bytes;
+        }
+
+
         internal int LoadModules()
         {
+            /// App Domain set
+
+
+            string[] files = Directory.GetFiles("modules");
+
+            foreach(var module in files)
+            {
+                if (module.EndsWith(".dll"))
+                {
+                    AssemblyName asm = new AssemblyName();
+                    asm.CodeBase = module;
+                    Assembly asmTest;
+                    try
+                    {
+                        Assembly a = Assembly.ReflectionOnlyLoadFrom(module);
+                        Console.WriteLine($"{module} depends on: ");
+                        foreach(var references in a.GetReferencedAssemblies())
+                        {
+                            Console.Write($"{references}, ");
+                        }
+                        //asmTest = MonikaBotAppDomain.Load(asm);
+                    }
+                    catch (Exception ex) { Console.WriteLine(ex.GetType().ToString()); continue; }
+
+                    //AppDomain.Unload(MonikaBotAppDomain);
+                }
+            }
+
+#if OLD
             int modulesLoaded = 0;
 
             string[] files = Directory.GetFiles("modules"); //hopefully just to refresh
@@ -203,11 +285,14 @@ namespace MonikaBot
                             Log(LogLevel.Debug, $"Installing module {moduleToInstall.Name} from DLL");
                             moduleToInstall.Install(commandManager);
                             modulesLoaded++;
+                            this.ModulesLoaded.Add(module);
                         }
                     }
                 }
             }
             return modulesLoaded;
+#endif
+            return 0;
         }
 
         private bool IsValidModule(string modulePath)
