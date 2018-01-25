@@ -279,9 +279,9 @@ namespace MonikaBot
             try
             {
                 if (type == CommandTrigger.MessageCreate)
-                    commandManager.ExecuteOnMessageCommand(rawCommand, e.Channel, e.Author);
+                    commandManager.ExecuteOnMessageCommand(rawCommand, e.Channel, e.Author, e.Message, client);
                 else if (type == CommandTrigger.BotMentioned)
-                    commandManager.ExecuteOnMentionCommand(rawCommand, e.Channel, e.Author);
+                    commandManager.ExecuteOnMentionCommand(rawCommand, e.Channel, e.Author, e.Message, client);
             }
             catch (UnauthorizedAccessException ex) // Bad permission
             {

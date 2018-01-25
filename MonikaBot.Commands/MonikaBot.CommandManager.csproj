@@ -11,15 +11,19 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <PackOnBuild>true</PackOnBuild>
     <PackageId>MonikaBot.CommandManager</PackageId>
-    <PackageVersion>1.0.0.1</PackageVersion>
+    <PackageVersion>1.1.0.0</PackageVersion>
     <Authors>Axiom</Authors>
     <NeutralLanguage>en</NeutralLanguage>
     <Owners>Axiom</Owners>
     <PackageProjectUrl>http://www.github.com/MonikaBot</PackageProjectUrl>
-    <PackageReleaseNotes>Fixed a bug where commands with no arguments wouldn't work right at all.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added a module shutdown area
+Passing of DiscordClient object for internal modules/commands only.
+Passing of raw DiscordMessage object.</PackageReleaseNotes>
     <Summary>Command manager component for Monika Bot.</Summary>
     <Title>MonikaBot.CommandManager</Title>
     <Description>Command Manager for Monika Bot, a required dependency for building packages for her.</Description>
+    <ReleaseVersion>1.1.0.0</ReleaseVersion>
+    <SynchReleaseVersion>false</SynchReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

@@ -26,6 +26,7 @@ namespace MonikaBot.OwnerModule
             mainEntry = main;
             Name = "Base";
             Description = "The base set of modules that cannot be enabled or disabled by the user.";
+            ModuleKind = ModuleType.Internal;
         }
         public override void Install(CommandsManager manager)
         {
@@ -161,6 +162,7 @@ namespace MonikaBot.OwnerModule
                     {
                         string newPrefix = cmdArgs.Args[0];
                         mainEntry.config.Prefix = newPrefix;
+                        mainEntry.config.WriteConfig();
                         cmdArgs.Channel.SendMessageAsync($"Command prefix changed to **{mainEntry.config.Prefix}** successfully!");
                     }
                     catch (Exception)
@@ -236,22 +238,56 @@ namespace MonikaBot.OwnerModule
             }, argCount: 1), this);
 
             manager.AddCommand(new CommandStub("changepic", "Changes the bot's guild pic test.", "Test", cmdArgs =>
-             {
-                 Regex linkParser = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                 string rawString = $"{cmdArgs.Args[0]}";
-                 if (linkParser.Matches(rawString).Count > 0)
-                 {
-                     string url = linkParser.Matches(rawString)[0].ToString();
-                     using (WebClient wc = new WebClient())
-                     {
-                         byte[] data = wc.DownloadData(url);
-                         using (MemoryStream mem = new MemoryStream(data))
-                         {
-                            
-                         }
-                     }
-                 }
-            }, PermissionType.Owner, 1));
+            {
+                if(cmdArgs.Client == null)
+                {
+                    cmdArgs.Channel.SendMessageAsync("Uh oh, the client argument was null?!?! :(");
+                     return;
+                }
+                Regex linkParser = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                if (cmdArgs.Message.Attachments != null && cmdArgs.Message.Attachments.Count > 0)
+                {
+                    foreach (var emb in cmdArgs.Message.Attachments)
+                    {
+                        if (emb != null)
+                        {
+                            using (WebClient wc = new WebClient())
+                            {
+                                byte[] data = wc.DownloadData(emb.Url);
+                                using (MemoryStream mem = new MemoryStream(data))
+                                {
+                                    cmdArgs.Client.EditCurrentUserAsync(avatar: mem);
+                                    cmdArgs.Channel.SendMessageAsync("Done!");
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (cmdArgs.Args.Count > 0)
+                {
+                    string rawString = $"{cmdArgs.Args[0]}";
+                    if (linkParser.Matches(rawString).Count > 0)
+                    {
+                        try
+                        {
+                            string url = linkParser.Matches(rawString)[0].ToString();
+                            using (WebClient wc = new WebClient())
+                            {
+                                cmdArgs.Client.EditCurrentUserAsync(avatar: wc.OpenRead(url));
+                                cmdArgs.Channel.SendMessageAsync("Done!");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            cmdArgs.Channel.SendMessageAsync($"Something bad happened: {ex.Message}");
+                        }
+                    }
+                }
+                else
+                {
+                    cmdArgs.Channel.SendMessageAsync("Change to what?");
+                }
+            }, PermissionType.Owner, 1), this);
 
             /* TODO
             manager.AddCommand(new CommandStub("prune",

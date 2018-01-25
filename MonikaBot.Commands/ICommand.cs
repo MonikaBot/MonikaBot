@@ -15,6 +15,7 @@ namespace MonikaBot.Commands
         public DiscordUser Author { get; internal set; }
         public string FromIntegration { get; internal set; }
         public DiscordClient Client { get; internal set; }
+        public DiscordMessage Message { get; internal set; }
     }
 
     [Flags]
@@ -74,7 +75,7 @@ namespace MonikaBot.Commands
         internal virtual Type __typeofCommand { get; set; }
         public virtual string ID { get; set; }
 
-        public abstract void ExecuteCommand(DiscordChannel channel, DiscordUser member);
+        public abstract void ExecuteCommand(DiscordChannel channel, DiscordUser member, DiscordMessage message, DiscordClient client = null);
 
         //public string ReturnArgument(string argName)
         //{

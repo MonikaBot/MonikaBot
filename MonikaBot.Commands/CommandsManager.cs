@@ -173,7 +173,7 @@ namespace MonikaBot.Commands
             return dict;
         }
 
-        public int ExecuteOnMessageCommand(string rawCommandText, DiscordChannel channel, DiscordUser author)
+        public int ExecuteOnMessageCommand(string rawCommandText, DiscordChannel channel, DiscordUser author, DiscordMessage message, DiscordClient client = null)
         {
             string[] split = rawCommandText.Split(new char[] { ' ' }); //splits into args and stuff
 #if DEBUG
@@ -212,7 +212,10 @@ namespace MonikaBot.Commands
                             command.AddArgument(argsSplit[i]);
                     }
                     //finally, executes it
-                    command.ExecuteCommand(/*__client,*/ channel, author);
+                    DiscordClient passClient = null;
+                    if (command.Parent.ModuleKind == ModuleType.Internal)
+                        passClient = client;
+                    command.ExecuteCommand(channel, author, message, client);
                     return 0;
                 }
             }
@@ -227,7 +230,7 @@ namespace MonikaBot.Commands
             return 1;
         }
 
-        public int ExecuteOnMentionCommand(string rawCommandText, DiscordChannel channel, DiscordUser author)
+        public int ExecuteOnMentionCommand(string rawCommandText, DiscordChannel channel, DiscordUser author, DiscordMessage message, DiscordClient client = null)
         {
             string[] split = rawCommandText.Split(new char[] { ' ' });
             try
@@ -265,7 +268,10 @@ namespace MonikaBot.Commands
                             command.AddArgument(argsSplit[i]);
                     }
                     //finally, executes it
-                    command.ExecuteCommand(/*__client,*/ channel, author);
+                    DiscordClient passClient = null;
+                    if (command.Parent.ModuleKind == ModuleType.Internal)
+                        passClient = client;
+                    command.ExecuteCommand(channel, author, message, client);
                     return 0;
                 }
             }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DSharpPlus;
 
 namespace MonikaBot.Commands
 {
@@ -154,13 +155,15 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
-        public override void ExecuteCommand(DiscordChannel channel, DiscordUser member)
+        public override void ExecuteCommand(DiscordChannel channel, DiscordUser member, DiscordMessage message, DiscordClient client = null)
         {
             CommandArgs e = new CommandArgs();
             /*e.FromIntegration = integration.IntegrationName;*/
             e.Args = this.Args;
             e.Author = member;
             e.Channel = channel;
+            e.Message = message;
+            e.Client = client;
 
             if ((int)CommandsManager.GetPermissionFromID(member.Id.ToString()) >= (int)MinimumPermission)
                 Do.Invoke(e);
