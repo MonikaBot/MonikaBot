@@ -40,11 +40,17 @@ namespace MonikaBot.OwnerModule
             {
                 cmdArgs.Channel.SendMessageAsync($"Okay {cmdArgs.Author.Mention}~. Just give me one second!");
                 cmdArgs.Channel.TriggerTypingAsync();
-                int modulesLoaded = mainEntry.ReloadModules();
+                int modulesLoaded = mainEntry.ReloadModules(true);
                 Thread.Sleep(2000);
                 cmdArgs.Channel.SendMessageAsync($"I'm back! I reloaded {modulesLoaded} module(s) for you!");
 
             }, trigger: CommandTrigger.BotMentioned | CommandTrigger.MessageCreate), this);
+            manager.AddCommand(new CommandStub("removemodules", "Forces all modules out of memory (hopefully).", "No arguments", PermissionType.Admin, cmdArgs=>
+            {
+                cmdArgs.Channel.SendMessageAsync("Working on it....");
+                cmdArgs.Channel.TriggerTypingAsync();
+                int modulesLoaded = mainEntry.ReloadModules(false);
+            }));
             manager.AddCommand(new CommandStub("giveperm", "Gives the perm to the specified user (bot scope)", "", PermissionType.Owner, 2, e =>
             {
                 //giveperm Admin <@2309208509852>
