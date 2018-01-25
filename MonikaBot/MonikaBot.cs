@@ -75,65 +75,9 @@ namespace MonikaBot
 
         public void ConnectBot()
         {
-            /*
-            client.Ready += (e) =>
-            {
-                Console.WriteLine("Ready!");
-
-                // Print all connected servers.
-                string servers = "";
-                foreach(DiscordGuild server in e.Client.Guilds.Values)
-                {
-                    servers += server.Name + ", ";
-                }
-                Console.WriteLine("Servers: " + servers);
-
-                // Print all connected channels.
-
-                return Task.Delay(0);
-            };
-            */
-
             client.Ready += Client_Ready;
-
-            /*
-            client.GuildAvailable += (e) =>
-            {
-                Console.WriteLine("Guild available: " + e.Guild.Name);
-
-                //Lists all the channels
-                string channels = "Channels: ";
-                foreach(var channel in e.Guild.Channels)
-                {
-                    channels += $"{channel.Name} ({channel.Type.ToString()}), ";
-                }
-                Console.WriteLine(channels);
-
-                //Fancy way to send a message to a channel
-
-                DiscordChannel channelToSend = e.Guild.Channels.Where(x => x.Name == "dev" && x.Type == ChannelType.Text).First();
-                client.SendMessageAsync(channelToSend, "Can you hear me?");
-
-                return Task.Delay(0);
-            };
-            */
-
             client.GuildAvailable += Client_GuildAvailable;
-
-
-            /*
-            client.MessageCreated += (e) =>
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write($"@{e.Author.Username} #{e.Channel.Name}:");
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.Write($" {e.Message.Content}");
-
-                return Task.Delay(0);
-            };
-            */
             client.MessageCreated += Client_MessageCreated;
-
             client.ConnectAsync();
         }
 
@@ -180,17 +124,7 @@ namespace MonikaBot
             int modulesLoaded = 0;
 
             string[] files = Directory.GetFiles("modules"); //hopefully just to refresh
-            //IEnumerable dllEnumerable = Directory.EnumerateFiles("modules", "*.dll");
 
-#if FUCK
-            string dllsString = "";
-            foreach (var filePath in Directory.EnumerateFiles("modules", "*.dll"))
-            {
-                dllsString += $"{filePath} (Valid: {IsValidModule(filePath)}), ";
-
-            }
-            Log(LogLevel.Debug, $"DLLs in modules directory: {dllsString}");
-#endif
             foreach (var module in files)
             {
                 if (module.EndsWith(".dll"))
@@ -273,12 +207,6 @@ namespace MonikaBot
 
         private Task Client_GuildAvailable(DSharpPlus.EventArgs.GuildCreateEventArgs e)
         {
-            
-            //Fancy way to send a message to a channel
-
-            //DiscordChannel channelToSend = e.Guild.Channels.Where(x => x.Name == "dev" && x.Type == ChannelType.Text).First();
-            //client.SendMessageAsync(channelToSend, "Can you hear me?");
-
             return Task.Delay(0);
         }
 

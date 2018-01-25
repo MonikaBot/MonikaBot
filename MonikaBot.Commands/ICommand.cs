@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DSharpPlus;
 
 namespace MonikaBot.Commands
 {
@@ -13,8 +14,10 @@ namespace MonikaBot.Commands
         public DiscordChannel Channel { get; internal set; }
         public DiscordUser Author { get; internal set; }
         public string FromIntegration { get; internal set; }
+        public DiscordClient Client { get; internal set; }
     }
 
+    [Flags]
     public enum CommandTrigger
     {
         MessageCreate = 0,

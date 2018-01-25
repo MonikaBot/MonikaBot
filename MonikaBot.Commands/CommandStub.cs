@@ -29,6 +29,8 @@ namespace MonikaBot.Commands
             this.ID = IDGenerator.GenerateRandomCode();
         }
 
+        /*
+        [Obsolete]
         public CommandStub(string name, string description, string helpTag)
         {
             this.ID = IDGenerator.GenerateRandomCode();
@@ -40,6 +42,7 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
+        [Obsolete]
         public CommandStub(string name, string description, CommandTrigger trigger = CommandTrigger.MessageCreate)
         {
             this.ID = IDGenerator.GenerateRandomCode();
@@ -51,6 +54,7 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
+        [Obsolete]
         public CommandStub(Action<CommandArgs> action)
         {
             this.ID = IDGenerator.GenerateRandomCode();
@@ -60,6 +64,7 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
+        [Obsolete]
         public CommandStub(string name, string description, Action<CommandArgs> action, CommandTrigger trigger = CommandTrigger.MessageCreate)
         {
             this.ID = IDGenerator.GenerateRandomCode();
@@ -72,6 +77,7 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
+        [Obsolete]
         public CommandStub(string name, string description, string helpTag, Action<CommandArgs> action, CommandTrigger trigger = CommandTrigger.MessageCreate)
         {
             this.ID = IDGenerator.GenerateRandomCode();
@@ -85,6 +91,7 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
+        [Obsolete]
         public CommandStub(string name, string description, string helpTag, PermissionType minPerm, Action<CommandArgs> action, CommandTrigger trigger = CommandTrigger.MessageCreate)
         {
             this.ID = IDGenerator.GenerateRandomCode();
@@ -99,6 +106,7 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
+        [Obsolete]
         public CommandStub(string name, string description, string helpTag, PermissionType minPerm, int argCount, Action<CommandArgs> action, CommandTrigger trigger = CommandTrigger.MessageCreate)
         {
             this.ID = IDGenerator.GenerateRandomCode();
@@ -114,6 +122,7 @@ namespace MonikaBot.Commands
             Args = new List<string>();
         }
 
+        [Obsolete]
         public CommandStub(string name, string description, string helpTag, PermissionType minPerm, int argCount, Action<CommandArgs> action)
         {
             this.ID = IDGenerator.GenerateRandomCode();
@@ -125,6 +134,23 @@ namespace MonikaBot.Commands
             MinimumPermission = minPerm;
             ArgCount = argCount;
 
+            Args = new List<string>();
+        }
+        */
+
+        public CommandStub(string name, string description, string helpTag, Action<CommandArgs> action, PermissionType minPerm = PermissionType.User,
+                           int argCount = 0, CommandTrigger trigger = CommandTrigger.MessageCreate)
+        {
+            ID = IDGenerator.GenerateRandomCode();
+
+            Do = action;
+            CommandName = name;
+            Description = description;
+            HelpTag = helpTag;
+
+            MinimumPermission = minPerm;
+            ArgCount = argCount;
+            Trigger = trigger;
             Args = new List<string>();
         }
 

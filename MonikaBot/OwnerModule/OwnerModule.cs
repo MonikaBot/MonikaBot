@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
@@ -32,11 +34,11 @@ namespace MonikaBot.OwnerModule
                 TimeSpan uptime = DateTime.Now - mainEntry.ReadyTime;
                 cmdArgs.Channel.SendMessageAsync($"I've been running for `{uptime.Days} days, {uptime.Hours} hrs, and {uptime.Minutes} mins`~");
             }, trigger: CommandTrigger.BotMentioned | CommandTrigger.MessageCreate), this);
-            manager.AddCommand(new CommandStub("selfdestruct", "Shuts the bot down.", "", PermissionType.Owner, cmdArgs =>
+            manager.AddCommand(new CommandStub("selfdestruct", "Shuts the bot down.", "", cmdArgs =>
             {
                 mainEntry.Dispose();
-            }), this);
-            manager.AddCommand(new CommandStub("reloadmodules", "Reloads the bot's modules", "No Arguments", PermissionType.Admin, cmdArgs=>
+            }, minPerm: PermissionType.Owner), this);
+            manager.AddCommand(new CommandStub("reloadmodules", "Reloads the bot's modules", "No Arguments",  cmdArgs=>
             {
                 cmdArgs.Channel.SendMessageAsync($"Okay {cmdArgs.Author.Mention}~. Just give me one second!");
                 cmdArgs.Channel.TriggerTypingAsync();
@@ -44,15 +46,15 @@ namespace MonikaBot.OwnerModule
                 Thread.Sleep(2000);
                 cmdArgs.Channel.SendMessageAsync($"I'm back! I reloaded {modulesLoaded} module(s) for you!");
 
-            }, trigger: CommandTrigger.BotMentioned | CommandTrigger.MessageCreate), this);
-            manager.AddCommand(new CommandStub("removemodules", "Forces all modules out of memory (hopefully).", "No arguments", PermissionType.Admin, cmdArgs=>
+            }, PermissionType.Admin, trigger: CommandTrigger.BotMentioned | CommandTrigger.MessageCreate), this);
+            manager.AddCommand(new CommandStub("removemodules", "Forces all modules out of memory (hopefully).", "No arguments", cmdArgs=>
             {
                 cmdArgs.Channel.SendMessageAsync("Working on it....");
                 cmdArgs.Channel.TriggerTypingAsync();
                 int modulesLoaded = mainEntry.ReloadModules(false);
                 cmdArgs.Channel.SendMessageAsync("Done~");
-            }));
-            manager.AddCommand(new CommandStub("giveperm", "Gives the perm to the specified user (bot scope)", "", PermissionType.Owner, 2, e =>
+            }, PermissionType.Owner));
+            manager.AddCommand(new CommandStub("giveperm", "Gives the perm to the specified user (bot scope)", "", e =>
             {
                 //giveperm Admin <@2309208509852>
                 if (e.Args.Count > 1)
@@ -79,9 +81,9 @@ namespace MonikaBot.OwnerModule
                     e.Channel.SendMessageAsync($"Given permission {type.ToString().Substring(type.ToString().IndexOf('.') + 1)} to <@{id}>!");
                 }
                 File.WriteAllText("permissions.json", JsonConvert.SerializeObject(CommandsManager.UserRoles));
-            }), this);
+            }, PermissionType.Owner, 2), this);
 
-            manager.AddCommand(new CommandStub("disablemodule", "Disables a module by name", "The module name is case insensitive.", PermissionType.Owner, 1, cmdArgs =>
+            manager.AddCommand(new CommandStub("disablemodule", "Disables a module by name", "The module name is case insensitive.", cmdArgs =>
             {
                 if (cmdArgs.Args[0].Length > 0)
                 {
@@ -102,9 +104,9 @@ namespace MonikaBot.OwnerModule
                 {
                     cmdArgs.Channel.SendMessageAsync("What module?");
                 }
-            }), this);
+            }, PermissionType.Owner, 1), this);
 
-            manager.AddCommand(new CommandStub("enablemodule", "Disables a module by name", "The module name is case insensitive.", PermissionType.Owner, 1, cmdArgs =>
+            manager.AddCommand(new CommandStub("enablemodule", "Disables a module by name", "The module name is case insensitive.", cmdArgs =>
             {
                 if (cmdArgs.Args[0].Length > 0)
                 {
@@ -125,10 +127,9 @@ namespace MonikaBot.OwnerModule
                 {
                     cmdArgs.Channel.SendMessageAsync("What module?");
                 }
-            }), this);
+            }, PermissionType.Owner, 1), this);
 
-            manager.AddCommand(new CommandStub("modules", "Lists all the modules and whether or not they're enabled.", "",
-                PermissionType.Owner, cmdArgs =>
+            manager.AddCommand(new CommandStub("modules", "Lists all the modules and whether or not they're enabled.", "", cmdArgs =>
             {
                 string msg = $"**Modules**";
                 foreach (var kvp in manager.Modules)
@@ -140,8 +141,8 @@ namespace MonikaBot.OwnerModule
                     }
                 }
                 cmdArgs.Channel.SendMessageAsync(msg);
-            }), this);
-            manager.AddCommand(new CommandStub("commands", "Lists all of the available commands", "", PermissionType.User, cmdArgs=>
+            }, PermissionType.Owner), this);
+            manager.AddCommand(new CommandStub("commands", "Lists all of the available commands", "", cmdArgs=>
             {
                 string msg = "**Commands**\n```";
                 foreach(var command in manager.Commands)
@@ -151,7 +152,7 @@ namespace MonikaBot.OwnerModule
                 msg += "\n```";
                 cmdArgs.Channel.SendMessageAsync(msg);
             }), this);
-            manager.AddCommand(new CommandStub("changeprefix", "Changes the command prefix to a specified character.", "", PermissionType.Owner, 1, cmdArgs =>
+            manager.AddCommand(new CommandStub("changeprefix", "Changes the command prefix to a specified character.", "", cmdArgs =>
             {
                 if (cmdArgs.Args.Count > 0)
                 {
@@ -170,9 +171,9 @@ namespace MonikaBot.OwnerModule
                 }
                 else
                     cmdArgs.Channel.SendMessageAsync("What prefix?");
-            }), this);
+            }, PermissionType.Owner, 1), this);
 
-            manager.AddCommand(new CommandStub("cmdinfo", "Displays help for a command.", "Help", PermissionType.User, 2, e =>
+            manager.AddCommand(new CommandStub("cmdinfo", "Displays help for a command.", "Help",  e =>
             {
                 if (!String.IsNullOrEmpty(e.Args[0]))
                 {
@@ -197,9 +198,9 @@ namespace MonikaBot.OwnerModule
                 }
                 else
                     e.Channel.SendMessageAsync("What command?");
-            }), this);
+            }, argCount: 1), this);
 
-            manager.AddCommand(new CommandStub("os", "Displays OS info for the bot.", "OS information", PermissionType.User, 0, e =>
+            manager.AddCommand(new CommandStub("os", "Displays OS info for the bot.", "OS information", e =>
             {
                 e.Channel.SendMessageAsync($"I'm currently being hosted on a system running `{OperatingSystemDetermination.GetUnixName()}`~!");
                 if (OperatingSystemDetermination.IsOnMac())
@@ -209,7 +210,7 @@ namespace MonikaBot.OwnerModule
                 }
             }), this);
 
-            manager.AddCommand(new CommandStub("moduleinfo", "Shows information about a specific module.", "", PermissionType.User, 1, cmdArgs =>
+            manager.AddCommand(new CommandStub("moduleinfo", "Shows information about a specific module.", "", cmdArgs =>
             {
                 if (cmdArgs.Args.Count > 0 && cmdArgs.Args[0].Length > 0)
                 {
@@ -232,7 +233,25 @@ namespace MonikaBot.OwnerModule
                         }
                     }
                 }
-            }), this);
+            }, argCount: 1), this);
+
+            manager.AddCommand(new CommandStub("changepic", "Changes the bot's guild pic test.", "Test", cmdArgs =>
+             {
+                 Regex linkParser = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                 string rawString = $"{cmdArgs.Args[0]}";
+                 if (linkParser.Matches(rawString).Count > 0)
+                 {
+                     string url = linkParser.Matches(rawString)[0].ToString();
+                     using (WebClient wc = new WebClient())
+                     {
+                         byte[] data = wc.DownloadData(url);
+                         using (MemoryStream mem = new MemoryStream(data))
+                         {
+                            
+                         }
+                     }
+                 }
+            }, PermissionType.Owner, 1));
 
             /* TODO
             manager.AddCommand(new CommandStub("prune",
@@ -289,6 +308,10 @@ namespace MonikaBot.OwnerModule
                 }
             }));
             */
+        }
+
+        public override void ShutdownModule(CommandsManager managers)
+        {
         }
     }
 }

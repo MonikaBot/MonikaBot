@@ -42,6 +42,14 @@ namespace MonikaBot.Commands
         public abstract void Install(CommandsManager manager);
 
         /// <summary>
+        /// Event that occurs when the module is about to be shutdown (removed from memory or bot is closing down).
+        /// 
+        /// You can perform saving events here for databases.
+        /// </summary>
+        /// <param name="managers">Managers.</param>
+        public abstract void ShutdownModule(CommandsManager managers);
+
+        /// <summary>
         /// Uninstall's this modules's commands from the given module manager.
         /// </summary>
         /// <param name="manager"></param>
