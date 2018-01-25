@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -237,12 +238,11 @@ namespace MonikaBot.OwnerModule
                 }
             }, argCount: 1), this);
 
-            manager.AddCommand(new CommandStub("changepic", "Changes the bot's guild pic test.", "Test", cmdArgs =>
+            manager.AddCommand(new CommandStub("changepic", "Changes the bot's guild pic test.", "Test", async cmdArgs =>
             {
                 if(cmdArgs.Client == null)
                 {
-                    cmdArgs.Channel.SendMessageAsync("Uh oh, the client argument was null?!?! :(");
-                     return;
+                    await cmdArgs.Channel.SendMessageAsync("Uh oh, the client argument was null?!?! :(");
                 }
                 Regex linkParser = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 if (cmdArgs.Message.Attachments != null && cmdArgs.Message.Attachments.Count > 0)
@@ -251,13 +251,23 @@ namespace MonikaBot.OwnerModule
                     {
                         if (emb != null)
                         {
-                            using (WebClient wc = new WebClient())
+                            using (HttpClient htc = new HttpClient())
                             {
-                                byte[] data = wc.DownloadData(emb.Url);
-                                using (MemoryStream mem = new MemoryStream(data))
+                                Stream imageStream = htc.GetStreamAsync(emb.Url).Result;
+                                if(imageStream != null)
                                 {
-                                    cmdArgs.Client.EditCurrentUserAsync(avatar: mem);
-                                    cmdArgs.Channel.SendMessageAsync("Done!");
+                                    try
+                                    {
+                                        MemoryStream memStream = new MemoryStream();
+                                        imageStream.CopyTo(memStream);
+
+                                        await cmdArgs.Client.EditCurrentUserAsync(avatar: memStream);
+                                        await cmdArgs.Channel.SendMessageAsync("Done!");
+                                    }
+                                    catch(Exception ex)
+                                    {
+                                        await cmdArgs.Channel.SendMessageAsync("Nope.\n" + ex.Message);
+                                    }
                                 }
                             }
                         }
@@ -268,24 +278,32 @@ namespace MonikaBot.OwnerModule
                     string rawString = $"{cmdArgs.Args[0]}";
                     if (linkParser.Matches(rawString).Count > 0)
                     {
-                        try
+                        string url = linkParser.Matches(rawString)[0].ToString();
+                        using (HttpClient htc = new HttpClient())
                         {
-                            string url = linkParser.Matches(rawString)[0].ToString();
-                            using (WebClient wc = new WebClient())
+                            Stream imageStream = htc.GetStreamAsync(url).Result;
+
+                            if (imageStream != null)
                             {
-                                cmdArgs.Client.EditCurrentUserAsync(avatar: wc.OpenRead(url));
-                                cmdArgs.Channel.SendMessageAsync("Done!");
+                                try
+                                {
+                                    MemoryStream memStream = new MemoryStream();
+                                    imageStream.CopyTo(memStream);
+
+                                    await cmdArgs.Client.EditCurrentUserAsync(avatar: memStream);
+                                    await cmdArgs.Channel.SendMessageAsync("Done!");
+                                }
+                                catch (Exception ex)
+                                {
+                                    await cmdArgs.Channel.SendMessageAsync("Nope.\n" + ex.Message);
+                                }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            cmdArgs.Channel.SendMessageAsync($"Something bad happened: {ex.Message}");
                         }
                     }
                 }
                 else
                 {
-                    cmdArgs.Channel.SendMessageAsync("Change to what?");
+                    await cmdArgs.Channel.SendMessageAsync("Change to what?");
                 }
             }, PermissionType.Owner, 1), this);
 

@@ -56,7 +56,6 @@ namespace MonikaBot
             DiscordConfiguration dConfig = new DiscordConfiguration
             {
                 AutoReconnect = true,
-                EnableCompression = true,
                 LogLevel = LogLevel.Debug,
                 Token = config.Token,
                 TokenType = TokenType.Bot,
