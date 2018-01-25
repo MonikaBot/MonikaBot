@@ -162,12 +162,6 @@ namespace MonikaBot
         {
             // Setup the command manager for processing commands.
             SetupInternalCommands();
-#if DEBUG && ASDLASDFASDFASDFASDFASDFASDFASDFASDF
-            /// This stuff is only loaded if we're working with a "Debug" configuration in Visual Studio
-            IModule funModule = new FunModule.FunModule();
-            funModule.Install(commandManager);
-            Console.WriteLine($"[MODULE]: Installed module {funModule.Name} (Desc: {funModule.Description})");
-#endif
         }
 
         internal int ReloadModules(bool actuallyLoad)
@@ -185,10 +179,10 @@ namespace MonikaBot
         {
             int modulesLoaded = 0;
 
-            Directory.GetFiles("modules"); //hopefully just to refresh
-            IEnumerable dllEnumerable = Directory.EnumerateFiles("modules", "*.dll");
+            string[] files = Directory.GetFiles("modules"); //hopefully just to refresh
+            //IEnumerable dllEnumerable = Directory.EnumerateFiles("modules", "*.dll");
 
-#if DEBUG
+#if FUCK
             string dllsString = "";
             foreach (var filePath in Directory.EnumerateFiles("modules", "*.dll"))
             {
@@ -197,16 +191,19 @@ namespace MonikaBot
             }
             Log(LogLevel.Debug, $"DLLs in modules directory: {dllsString}");
 #endif
-            foreach (var module in dllEnumerable)
+            foreach (var module in files)
             {
-                if (IsValidModule(module.ToString()))
+                if (module.EndsWith(".dll"))
                 {
-                    IModule moduleToInstall = GetModule(module.ToString());
-                    if (moduleToInstall != null)
+                    if (IsValidModule(module.ToString()))
                     {
-                        Log(LogLevel.Debug, $"Installing module {moduleToInstall.Name} from DLL");
-                        moduleToInstall.Install(commandManager);
-                        modulesLoaded++;
+                        IModule moduleToInstall = GetModule(module.ToString());
+                        if (moduleToInstall != null)
+                        {
+                            Log(LogLevel.Debug, $"Installing module {moduleToInstall.Name} from DLL");
+                            moduleToInstall.Install(commandManager);
+                            modulesLoaded++;
+                        }
                     }
                 }
             }

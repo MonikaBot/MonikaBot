@@ -50,6 +50,7 @@ namespace MonikaBot.OwnerModule
                 cmdArgs.Channel.SendMessageAsync("Working on it....");
                 cmdArgs.Channel.TriggerTypingAsync();
                 int modulesLoaded = mainEntry.ReloadModules(false);
+                cmdArgs.Channel.SendMessageAsync("Done~");
             }));
             manager.AddCommand(new CommandStub("giveperm", "Gives the perm to the specified user (bot scope)", "", PermissionType.Owner, 2, e =>
             {
