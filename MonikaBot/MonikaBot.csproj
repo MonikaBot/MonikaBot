@@ -53,6 +53,9 @@
     <Reference Include="DSharpPlus.WebSocket.WebSocket4Net">
       <HintPath>..\packages\DSharpPlus.WebSocket.WebSocket4Net.3.2.3\lib\net45\DSharpPlus.WebSocket.WebSocket4Net.dll</HintPath>
     </Reference>
+    <Reference Include="AppDomainToolkit">
+      <HintPath>..\packages\AppDomainToolkit.1.0.4.3\lib\net\AppDomainToolkit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />

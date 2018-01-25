@@ -13,11 +13,35 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Converters;
 using System.Runtime.Remoting;
+using AppDomainToolkit;
+
+public class InstanceProxy : MarshalByRefObject
+{
+    private Assembly assembly;
+    public void LoadAssembly(string path)
+    {
+        Assembly asm = Assembly.LoadFrom(path);
+        Type[] types = asm.GetExportedTypes();
+        assembly = asm;
+    }
+
+    public IModuleEntryPoint GetEntryPoint()
+    {
+        Type type = assembly.GetType("ModuleEntryPoint");
+        if (type != null)
+        {
+            object o = Activator.CreateInstance(type);
+            return (o as IModuleEntryPoint);
+        }
+
+        return null;
+    }
+}
 
 namespace MonikaBot
 {
-
-    public class MonikaBot : IDisposable
+    
+    public class MonikaBot : System.IDisposable
     {
         private DiscordClient client;
         private CommandsManager commandManager;
@@ -25,38 +49,50 @@ namespace MonikaBot
         private bool SetupMode = false;
         private string AuthorizationCode;
         internal DateTime ReadyTime;
-        private AppDomain MonikaBotAppDomain;
 
         /// <summary>
         /// The file names of the modules loaded into memory.
         /// </summary>
         private List<string> ModulesLoaded;
 
-        private string[] AppDomainDependencies = {"mscorlib", "DSharpPlus.dll", "DSharpPlus.WebSocket.WebSocket4Net.dll", "Newtonsoft.Json.dll", "MonikaBot.CommandManager.dll" };
+        private string[] AppDomainDependencies = {"Newtonsoft.Json.dll", "DSharpPlus.WebSocket.WebSocket4Net.dll", "DSharpPlus.dll", "MonikaBot.CommandManager.dll" };
 
         private void SetupAppDomain()
         {
-            foreach(var depend in AppDomainDependencies)
+            string path = Directory.GetCurrentDirectory() + "/modules/";
+            Console.WriteLine(path);
+            List<string> installedModules = new List<string>();
+            string[] files = Directory.GetFiles(path);
+            foreach(string modulePath in files)
             {
-                    AssemblyName asm = new AssemblyName();
-                    asm.CodeBase = depend;
-                    Assembly asmTest;
-                    asmTest = MonikaBotAppDomain.Load(asm);
-
-                    Console.WriteLine($"Loaded assembly {asmTest.GetName().ToString()} into AppDomain");
-                    /*Console.WriteLine("Types in assembly " + depend);
-                    Type[] types = asmTest.GetTypes();
-                    foreach (var t in types)
+                try
+                {
+                    AppDomain domain = AppDomain.CreateDomain(Path.GetFileName(modulePath), AppDomain.CurrentDomain.Evidence);
+                    StreamReader reader = new StreamReader(modulePath, System.Text.Encoding.GetEncoding(1252), false);
+                    byte[] b = new byte[reader.BaseStream.Length];
+                    reader.BaseStream.Read(b, 0, System.Convert.ToInt32(reader.BaseStream.Length));
+                    domain.Load(b);
+                    Assembly[] a = domain.GetAssemblies();
+                    int index = 0;
+                    for (int i = 0; i < a.Length; i++)
                     {
-                        Console.Write($"{t}, ");
+                        if(a[i].GetName().Name + ".dll" == Path.GetFileName(modulePath))
+                        {
+                            index = i;
+                            break;
+                        }
                     }
-                    Console.Write("\n\n");*/
+                    installedModules.Add(a[index].GetName().Name);
                 }
+                catch(Exception ex)
+                {
+                    throw ex;
+                }
+            }
         }
 
         public MonikaBot()
         {
-            MonikaBotAppDomain = AppDomain.CreateDomain("MonikaBot");
             SetupAppDomain();
             ModulesLoaded = new List<string>();
 
