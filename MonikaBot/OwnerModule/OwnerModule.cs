@@ -270,6 +270,7 @@ namespace MonikaBot.OwnerModule
                                     }
                                 }
                             }
+                            break;
                         }
                     }
                 }
