@@ -70,10 +70,23 @@ namespace MonikaBot.Commands
             }
         }
 
-        public void ClearModulesAndCommands()
+        public void Dispose()
         {
+            lock (Modules)
+            {
+                foreach (var module in Modules)
+                {
+                    module.Key.ShutdownModule(this);
+
+                }
+            }
             __modules.Clear();
             __commands.Clear();
+        }
+
+        public void ClearModulesAndCommands()
+        {
+            this.Dispose();
         }
 
         public void WritePermissionsFile(string path = "permissions.json")

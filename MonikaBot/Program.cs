@@ -27,6 +27,7 @@ namespace MonikaBot
             {
                 if (output.Trim().ToLower() == "quit")
                 {
+                    b.Dispose();
                     return;
                 }
             }

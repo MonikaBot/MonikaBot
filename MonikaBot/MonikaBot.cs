@@ -298,7 +298,9 @@ namespace MonikaBot
 
         public void Dispose()
         {
+            Log(LogLevel.Info, "Shutting down!");
             File.WriteAllText("settings.json", JsonConvert.SerializeObject(config));
+            commandManager.Dispose();
             if(CommandsManager.UserRoles != null && CommandsManager.UserRoles.Count > 0)
                 File.WriteAllText("permissions.json", JsonConvert.SerializeObject(CommandsManager.UserRoles));
 
