@@ -197,7 +197,7 @@ namespace MonikaBot
                     Log(LogLevel.Debug, $"Module kind not external and therefore not valid in {modulePath}.");
                     return null;
                 }
-                
+
                 Log(LogLevel.Info, $"Module loaded successfully! {moduleCode.Name}: {moduleCode.Description}");
                 return moduleCode;
             }
@@ -212,7 +212,7 @@ namespace MonikaBot
         private Task Client_MessageCreated(DSharpPlus.EventArgs.MessageCreateEventArgs e)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write($"@{e.Author.Username} #{e.Channel.Name}:");
+            Console.Write($"@{e.Author.Username} #{e.Channel.Name} in {e.Guild.Name}:");
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($" {e.Message.Content}\n");
 
@@ -250,7 +250,7 @@ namespace MonikaBot
                 // We move onto processing the command.
                 // We pass in the MessageCreateEventArgs so we can get other information like channel, author, etc. The CommandsManager wants these things
                 ProcessCommand(e.Message.Content, e, CommandTrigger.MessageCreate);
-                      
+
             }
 
             return Task.Delay(0);
@@ -293,7 +293,7 @@ namespace MonikaBot
             catch (Exception ex) // Any other error that could happen inside of the commands.
             {
                 e.Channel.SendMessageAsync("Exception occurred while running command:\n```\n" + ex.Message + "\n```");
-            }          
+            }
         }
 
         public void Dispose()

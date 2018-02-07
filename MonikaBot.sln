@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonikaBot", "MonikaBot\Moni
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonikaBot.CommandManager", "MonikaBot.Commands\MonikaBot.CommandManager.csproj", "{DC0029CE-4FB0-47A9-AA33-19472157E7A1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonikaBot.Launcher", "MonikaBot.Launcher\MonikaBot.Launcher.csproj", "{A806F001-CFE7-49B3-86C1-0D979DF09ED1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DC0029CE-4FB0-47A9-AA33-19472157E7A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC0029CE-4FB0-47A9-AA33-19472157E7A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC0029CE-4FB0-47A9-AA33-19472157E7A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A806F001-CFE7-49B3-86C1-0D979DF09ED1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A806F001-CFE7-49B3-86C1-0D979DF09ED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A806F001-CFE7-49B3-86C1-0D979DF09ED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A806F001-CFE7-49B3-86C1-0D979DF09ED1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
