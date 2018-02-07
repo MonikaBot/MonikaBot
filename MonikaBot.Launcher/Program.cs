@@ -8,6 +8,7 @@ namespace MonikaBot.Launcher
     class MainClass
     {
         static ManualResetEvent resetEvent = new ManualResetEvent(false);
+        static bool quitFlag = false;
 
         public static void Main(string[] args)
         {
@@ -17,9 +18,10 @@ namespace MonikaBot.Launcher
                 e.Cancel = true;
             };
 
+            Process p;
             if(File.Exists("MonikaBot.exe"))
             {
-                Process p = new Process();
+                p = new Process();
                 p.StartInfo = new ProcessStartInfo("MonikaBot.exe");
                 p.OutputDataReceived += (sender, e) => 
                 {
@@ -35,7 +37,15 @@ namespace MonikaBot.Launcher
                 return;
             }
 
-            resetEvent.WaitOne();
+
+            while(!quitFlag)
+            {
+                if(p.HasExited)
+                {
+                    Console.WriteLine("Restarting MonikaBot..");
+                    p.Start();
+                }
+            }
         }
     }
 }
